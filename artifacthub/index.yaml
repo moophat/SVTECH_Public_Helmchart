@@ -5,27 +5,13 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: 1.4.3
-    created: "2024-04-10T14:18:16.152758972+07:00"
+    created: "2024-04-10T14:35:56.839358882+07:00"
     description: A Library Helm Chart for grouping common logic between bitnami charts.
       This chart is not deployable by itself.
-    digest: ef8af7f3659ae72da2362686e5967a7fe1ccaffa4e801dc9d744dbe7c8c98117
-    home: https://github.com/bitnami/charts/tree/master/bitnami/common
-    icon: https://bitnami.com/downloads/logos/bitnami-mark.png
-    keywords:
-    - common
-    - helper
-    - template
-    - function
-    - bitnami
-    maintainers:
-    - email: containers@bitnami.com
-      name: Bitnami
+    digest: e2f5957fa606ffd9b2f48e58d8b59aff927e6e0e177e5c3c5c1d51abcde5b4d8
     name: common
-    sources:
-    - https://github.com/bitnami/charts
-    - http://www.bitnami.com/
     type: library
     urls:
     - common-1.4.3.tgz
     version: 1.4.3
-generated: "2024-04-10T14:18:16.150094033+07:00"
+generated: "2024-04-10T14:35:56.836695826+07:00"

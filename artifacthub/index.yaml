@@ -5,7 +5,7 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: 1.4.3
-    created: "2024-04-10T15:04:04.230102103+07:00"
+    created: "2024-04-10T15:07:44.870368006+07:00"
     description: A Library Helm Chart for grouping common logic between bitnami charts.
       This chart is not deployable by itself.
     digest: 418d63793bef2b2093766b091a713b45fad55a9c53b8c933c6b5f1ac10a5bb5a
@@ -18,7 +18,7 @@ entries:
       category: Frontend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-10T15:04:04.234964013+07:00"
+    created: "2024-04-10T15:07:44.915173435+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -29,4 +29,20 @@ entries:
     urls:
     - grafana-1.0.0.tgz
     version: 1.0.0
-generated: "2024-04-10T15:04:04.227365401+07:00"
+  icinga2:
+  - annotations:
+      category: Backend
+    apiVersion: v2
+    appVersion: v1.0.0
+    created: "2024-04-10T15:07:44.920518872+07:00"
+    dependencies:
+    - name: common
+      repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+      version: 1.x.x
+    description: SVTECH Icinga2
+    digest: f9efd9bcb9e762b6e725b979646272af2c1e3dc7429599be34a95c4a8b0c72a1
+    name: icinga2
+    urls:
+    - icinga2-1.0.0.tgz
+    version: 1.0.0
+generated: "2024-04-10T15:07:44.867902867+07:00"

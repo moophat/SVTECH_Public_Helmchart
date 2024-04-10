@@ -1,0 +1,34 @@
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: icinga2-zones-hostpath
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+
+---
+{{- $basePath := .Values.global.basePath }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.global.sharedPersistenceVolume }}
+{{- if eq .storageClass "icinga2-zones-hostpath" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ $namespace }}-icinga2-zones-pv"
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  storageClassName: {{ $namespace }}-icinga2-zones-hostpath
+  capacity:
+    # storage: 2Gi 
+    storage: {{ .storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    # path: /opt/shared/icinga2_zones
+    path: {{ $basePath }}/{{ $namespace }}/icinga2_zones
+{{- end }}
+
+{{- end  }}

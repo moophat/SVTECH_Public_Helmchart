@@ -1,0 +1,16 @@
+apiVersion: v2
+annotations:
+  category: Template
+name: sharedVolume
+description: Shared Longhorn volume
+engine: gotpl
+
+dependencies:
+  - name: common
+    repository: file://../common
+    tags:
+      - bitnami-common
+    version: 1.x.x
+
+version: 1.0.0
+appVersion: "v1.0.0"

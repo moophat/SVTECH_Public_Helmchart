@@ -1,0 +1,24 @@
+init:
+  image:
+    repository: mysql
+    tag: 8.2.0
+
+image:
+  repository: svtechnmaa/svtech_maxscale
+  tag: v1.0.3
+  pullPolicy: IfNotPresent
+
+service:
+  externalIPs: []
+
+maxscaleConfig:
+  # The server variable will not be used by default, it will be used only when external database is enabled
+  server: 
+    - db01://10.98.3.11:3306
+    - db02://10.98.3.12:3306
+    - db03://10.98.3.13:3306
+  monitor_user: maxscale_monitor
+  monitor_user_password: maxscale@123
+  port: 4006
+
+replicaCount: 2

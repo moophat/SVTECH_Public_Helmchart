@@ -1,0 +1,7 @@
+port:
+  bandwidth:
+    prefix: IfCheck-
+  crc:
+    prefix: IfCRC-
+  optic:
+    prefix: IfOptic-

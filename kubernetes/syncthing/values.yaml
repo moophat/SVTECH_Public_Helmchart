@@ -1,0 +1,147 @@
+global:
+  sharedVolume:
+    enabled: false
+
+timezone: Asia/Ho_Chi_Minh
+
+image:
+  repository: svtechnmaa/svtech_syncthing
+  tag: "v1.0.4"
+
+  pullPolicy: IfNotPresent
+  debug: false
+
+uiPassword: juniper@123
+
+env:
+  LIST_FOLDER: "syncthing_config, repo_automation, csv_output, gitlist, icinga2_plugins, icinga2_conf, icinga2_zones, nagvis_maps, rundeck_backup, rundeck_jsnapy, rundeck_projects, rundeck_var, thruk, icingaweb_conf, snmp-manager-conf"
+
+clusterDomain: cluster.local
+commonAnnotations: {}
+commonLabels: {}
+
+replicaCount: 30
+
+podManagementPolicy: OrderedReady
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  ## Node affinity type
+  ## Allowed values: soft, hard
+  type: ""
+  ## Node label key to match
+  ## E.g.
+  ## key: "kubernetes.io/e2e-az-name"
+  ##
+  key: ""
+  ## Node label values to match
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+
+
+## Affinity for pod assignment
+## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+##
+affinity:
+ podAntiAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+  - labelSelector:
+      matchExpressions:
+        - key: "app"
+          operator: In
+          values:
+          - syncthing
+    topologyKey: "kubernetes.io/hostname"
+
+## Node labels for pod assignment
+nodeSelector: {}
+
+## Tolerations for pod assignment
+tolerations: []
+
+## Extra volumes to add to the deployment
+extraVolumes: []
+
+## Extra volume mounts to add to the container
+extraVolumeMounts: []
+
+securityContext:
+  enabled: false
+  fsGroup: 0
+  runAsUser: 0
+
+resources:
+  limits: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 180
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+
+## Custom Liveness probe
+customLivenessProbe: {}
+
+## Custom Readiness probe
+customReadinessProbe: {}
+
+## Container ports
+# containerPorts:
+
+service:
+  ## Service type
+  ##
+  type: ClusterIP
+  # port: 80
+
+  # loadBalancerIP:
+  # loadBalancerSourceRanges:
+  # - 10.10.10.0/24
+
+  # externalIPs: ["10.98.0.143"]
+
+  clusterIP: None
+  ## Provide any additional annotations which may be required
+  ##
+  annotations: {}
+  ## Set the service SessionAffinity for session stickiness
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-userspace
+  sessionAffinity: None
+
+  # ## Customize the SessionAffinity configuration. The default value for sessionAffinityConfig.clientIP.timeoutSeconds is 10800 (3 hours)
+  # sessionAffinityConfig:
+  #   clientIP:
+  #     timeoutSeconds: 7200
+  headless:
+    ## Additional annotations for headless service.
+    ## Can be useful in case peer-finder is used in a sidecar,
+    ## e.g.: service.alpha.kubernetes.io/tolerate-unready-endpoints="true"
+    ##
+    annotations: {}
+
+# persistence:
+#   enabled: true
+#   # # mountPath on Container
+#   # mountPath: /opt/gitlist
+
+#   # hostPath: mount path on Host
+#   hostPath: /mnt/data/gitlist
+

@@ -1,0 +1,275 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: rundeck
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.updateStrategy }}
+    {{- if (eq "Recreate" .Values.updateStrategy) }}
+    rollingUpdate: null
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: rundeck
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        app.kubernetes.io/component: rundeck
+    spec:
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      {{- end }}
+
+      imagePullSecrets:
+      - name: ghcr-pull-secret
+
+      {{- if .Values.init }}
+      initContainers:
+        - name: wait-for-init-repo
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.init.image) }}
+          imagePullPolicy: {{ .Values.init.image.pullPolicy | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+                until [ `ls -A /opt/SVTECH-Junos-Automation | grep 'completed' | wc -l` != 0 ];
+                do
+                  echo "Waiting for Init Repo...";
+                  sleep 2;
+                done
+
+          volumeMounts:
+          {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+            {{- range .Values.global.sharedPersistenceVolume }}
+
+            {{- if has "rundeck" .shareFor }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+
+            {{- end }}
+          {{- end  }}
+
+        - name: wait-for-mariadb
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.init.image) }}
+          imagePullPolicy: {{ .Values.init.image.pullPolicy | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              {{- if .Values.rundeckConfig.mysqlHost }}
+              until nc -zvw5 {{ .Values.rundeckConfig.mysqlHost }} 3306; do echo "Waiting for MariaDB..."; sleep 2; done
+              {{- else }}
+              until nc -zvw5 mariadb 3306; do echo "Waiting for MariaDB..."; sleep 2; done
+              {{- end }}
+
+      {{- end }}
+
+      containers:
+        - name: rundeck
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+          {{- end }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+                git config --global --add safe.directory "*"
+                chown rundeck:rundeck /etc/icinga2/zones.d -R
+                chmod 777 /etc/icinga2/zones.d -R
+                mkdir -p /var/lib/rundeck/jsnapy/snapshots
+                mkdir -p /var/lib/rundeck/jsnapy/snapcheck_history
+                mkdir -p /var/lib/rundeck/jsnapy/snapshots_history
+                chmod u+s /var/lib/rundeck/jsnapy/snapshots
+                chmod u+s /var/lib/rundeck/jsnapy/snapcheck_history
+                chmod u+s /var/lib/rundeck/jsnapy/snapshots_history
+                su rundeck -c 'git config --global --add safe.directory "*"
+                              git config --global user.name rundeck && \
+                              git config --global user.email rundeck@localhost'
+                cd /opt/SVTECH-Junos-Automation/Ansible-Development
+                if [ -d "/opt/SVTECH-Junos-Automation/Ansible-Development/collections" ]; then
+                  echo "Collections already installed"
+                else
+                  ansible-galaxy collection install -r requirements.yaml
+                  ansible-galaxy role install -r requirements.yaml --force
+                fi
+                cd /home/rundeck
+                /tini -- /home/rundeck/docker-lib/entry.sh
+
+          env:
+            - name: TZ
+              value: {{ include "common.timezone" ( dict "timezone" .Values.timezone "global" .Values.global) }}
+            - name: IMPORT_NMS_JOB
+              value: {{ .Values.rundeckConfig.IMPORT_NMS_JOB | quote }}
+            - name: IMPORT_AUTOMATION_JOB
+              value: {{ .Values.rundeckConfig.IMPORT_AUTOMATION_JOB | quote }}
+            - name: OVERRIDE_IMPORT_JOB
+              value: {{ .Values.rundeckConfig.OVERRIDE_IMPORT_JOB | quote }}
+            - name: RUNDECK_OPTION_PROVIDER_URL
+              value: {{ .Values.rundeckConfig.RUNDECK_OPTION_PROVIDER_URL | quote }}
+            - name: HOST_IP
+              value: {{ .Values.rundeckConfig.HOST_IP | quote }}
+            - name: ICINGA2_REPORT_URL
+              value: {{ .Values.rundeckConfig.ICINGA2_REPORT_URL | quote }}
+            - name: ICINGA2_API_HOST
+              value: {{ .Values.rundeckConfig.ICINGA2_API_HOST | quote }}
+            - name: ICINGA2_CONTAINER
+              value: {{ .Values.rundeckConfig.ICINGA2_CONTAINER | quote }}
+            - name: RUNDECK_SERVER_FORWARDED
+              value: {{ .Values.rundeckConfig.RUNDECK_SERVER_FORWARDED | quote }}
+            - name: RUNDECK_SERVER_CONTEXT_PATH
+              value: {{ .Values.rundeckConfig.RUNDECK_SERVER_CONTEXT_PATH | quote }}
+            - name: RUNDECK_GRAILS_URL
+              value: {{ .Values.rundeckConfig.RUNDECK_GRAILS_URL | quote }}
+            - name: RUNDECK_SERVER_ADDRESS
+              value: {{ .Values.rundeckConfig.RUNDECK_SERVER_ADDRESS | quote }}
+            - name: RUNDECK_DATABASE_URL
+              value: {{ .Values.rundeckConfig.RUNDECK_DATABASE_URL | quote }}
+            - name: RUNDECK_DATABASE_DRIVER
+              value: {{ .Values.rundeckConfig.RUNDECK_DATABASE_DRIVER | quote }}
+            - name: RUNDECK_DATABASE_USERNAME
+              value: {{ .Values.rundeckConfig.RUNDECK_DATABASE_USERNAME | quote }}
+            - name: RUNDECK_DATABASE_PASSWORD
+              value: {{ .Values.rundeckConfig.RUNDECK_DATABASE_PASSWORD | quote }}
+            - name: RUNDECK_ADMIN_USER
+              value: {{ .Values.rundeckConfig.RUNDECK_ADMIN_USER | quote }}
+            - name: RUNDECK_ADMIN_PASSWORD
+              value: {{ .Values.rundeckConfig.RUNDECK_ADMIN_PASSWORD | quote }}
+            - name: RUNDECK_ADMIN_TOKEN
+              value: {{ .Values.rundeckConfig.RUNDECK_ADMIN_TOKEN | quote }}
+            - name: ZONE_PREFIX
+              value: {{ .Values.rundeckConfig.ZONE_PREFIX | quote }}
+            - name: DISCOVER_FOLDER
+              value: {{ .Values.rundeckConfig.DISCOVER_FOLDER | quote }}
+            - name: ALL_CONFIG_FOLDER
+              value: {{ .Values.rundeckConfig.ALL_CONFIG_FOLDER | quote }}
+
+          ports:
+            - name: rundeck
+              containerPort: 4440
+
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+
+                  function authen_testing(){
+                    export token=$(cat /home/rundeck/.secret  |awk '{print $2}' | sed 's/,$//g')
+                    curl --silent -D - --show-error  -XGET --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" "http://localhost:4440/rundeck/api/45/projects?authtoken=${token}"
+                  }
+
+                  if authen_testing 2>&1 1>/dev/null; then
+                    export STATUS=$(authen_testing)
+                    if [[ $STATUS == *"error"* ]]; then
+                      echo "Rundeck Server is not READY or Authentication is FAILED";
+                      exit 1
+                    else
+                      echo "Rundeck Server is READY and Authentication is SUCCEEDED";
+                      exit 0
+                    fi
+                  else
+                    echo "Rundeck Server is being ERROR. Please check Rundeck's logs";
+                    exit 1
+                  fi
+
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 1
+            successThreshold: 1
+            timeoutSeconds: 1
+
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  # curl --silent -D - --request POST --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" "http://localhost:4440/rundeck/j_security_check" -d "j_username=user&j_password=user" |grep -e "error\|Error" && echo "Rundeck Server is not READY or Authentication is FAILED" && exit 1 || echo "Rundeck Server is READY and Authentication is SUCCEEDED" && exit 0
+
+                  function authen_testing(){
+                    curl --silent -D - --show-error --request POST --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" "http://localhost:4440/rundeck/j_security_check" -d "j_username=user&j_password=user"
+                  }
+
+                  if authen_testing 2>&1 1>/dev/null; then
+                    export STATUS=$(authen_testing)
+                    if [[ $STATUS == *"error"* ]]; then
+                      echo "Rundeck Server is not READY or Authentication is FAILED";
+                      exit 1
+                    else
+                      echo "Rundeck Server is READY and Authentication is SUCCEEDED";
+                      exit 0
+                    fi
+                  else
+                    echo "Rundeck Server is being ERROR. Please check Rundeck's logs";
+                    exit 1
+                  fi
+
+            initialDelaySeconds: 300
+            periodSeconds: 90
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 3
+
+      {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+          volumeMounts:
+            {{- range .Values.global.sharedPersistenceVolume }}
+
+            {{- if has "rundeck" .shareFor }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .path }}
+            {{- end }}
+
+            {{- end }}
+            - name: offline-log
+              mountPath: {{ .Values.global.rundeck.offlineLogFolder }}
+      volumes:
+        {{- range .Values.global.sharedPersistenceVolume }}
+
+        {{- if has "rundeck" .shareFor }}
+        - name: {{ .volumeName }}
+          persistentVolumeClaim:
+            claimName: {{ .pvcName }}
+        {{- end }}
+
+        {{- end }}
+        - name: offline-log
+          hostPath:
+            path: {{ .Values.global.rundeck.offlineLogFolder }}
+            type: DirectoryOrCreate
+
+      {{- end  }}

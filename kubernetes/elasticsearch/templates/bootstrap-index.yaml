@@ -1,0 +1,203 @@
+
+
+
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "bootstrep-es-index"
+
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: bootstrep-es-index
+        image: svtechnmaa/svtech_debuger:v1.0.0
+        command:
+          - bash
+          - -c
+          - |
+            echo started
+            # ping 8.8.8.8
+            while true; do
+                RESPONSE=$(curl -XGET -k -s -w '%{http_code}'  -u '{{.Values.global.elasticsearch.adminUser.name}}:{{.Values.global.elasticsearch.adminUser.pass}}' https://{{- printf "%s-%s" .Values.global.elasticsearch.clusterName .Values.global.elasticsearch.k8sSvcSubfix -}}:9200/_cluster/health)
+
+                STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+
+            if [[ "$STATUS" == "green" || "$STATUS" == "yellow" ]]; then
+
+                echo "sleep 20s"
+                sleep 20s
+
+
+                {{ $user := .Values.global.elasticsearch.adminUser.name}}
+                {{ $password := .Values.global.elasticsearch.adminUser.pass}}
+                {{ $clusterName := .Values.global.elasticsearch.clusterName}}
+                {{ $k8sSvcSubfix := .Values.global.elasticsearch.k8sSvcSubfix}}
+                {{ $shard := .Values.global.elasticsearch.index.shard }}
+                {{ $replica := .Values.global.elasticsearch.index.replica }}
+
+
+                {{range .Values.global.elasticsearch.index.name}}
+
+                # 0th **create separate user for logstash and kibana
+
+                # 1st ILM
+                curl -X PUT  -k -u '{{$user}}:{{$password}}' "https://{{- printf "%s-%s" $clusterName $k8sSvcSubfix -}}:9200/_ilm/policy/{{ . }}" -H 'Content-Type: application/json' -d'
+                    {
+                        "policy": {
+                            "phases": {
+                            "hot": {
+                                "min_age": "0ms",
+                                "actions": {
+                                "rollover": {
+                                    "max_age": "90d",
+                                    "max_primary_shard_size": "50gb"
+                                }
+                                }
+                            },
+                            "warm": {
+                                "min_age": "0ms",
+                                "actions": {
+                                "set_priority": {
+                                    "priority": 50
+                                }
+                                }
+                            },
+                            "delete": {
+                                "min_age": "180d",
+                                "actions": {
+                                "delete": {
+                                    "delete_searchable_snapshot": true
+                                }
+                                }
+                            }
+                            }
+                        }
+                    }
+                '
+
+                # 2nd template
+
+                curl -X PUT  -k -u '{{$user}}:{{$password}}' "https://{{- printf "%s-%s" $clusterName $k8sSvcSubfix -}}:9200/_index_template/{{ . }}" -H 'Content-Type: application/json' -d'
+                {
+                    "template": {
+                        "settings": {
+                        "index": {
+                            "lifecycle": {
+                                "name": "{{ . }}",
+                                "rollover_alias": "{{ . }}"
+                            },
+                            "codec": "best_compression",
+                            "mapping": {
+                                "total_fields": {
+                                    "limit": "10000"
+                                }
+                            },
+                            "refresh_interval": "30s",
+                            "number_of_shards": "{{ $shard }}",
+                            "max_docvalue_fields_search": "200",
+                            "number_of_replicas": "{{ $replica }}",
+                            "routing": {
+                                "allocation": {
+                                    "include": {
+                                        "_tier_preference": "data_hot"
+                                    }
+                                }
+                            }
+                        }
+                        },
+                        "mappings": {
+                            "dynamic": true,
+                                "_source": {
+                                    "enabled": true,
+                                    "includes": [],
+                                    "excludes": []
+                        },
+                        "_routing": {
+                            "required": false
+                        },
+                        "dynamic_templates": [
+                            {
+                            "message_field": {
+                                "path_match": "message",
+                                "mapping": {
+                                    "norms": false,
+                                    "type": "text"
+                                },
+                                "match_mapping_type": "string"
+                            }
+                            },
+                            {
+                            "string_fields": {
+                                "mapping": {
+                                "norms": false,
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "ignore_above": 256,
+                                        "type": "keyword"
+                                    }
+                                }
+                                },
+                                "match_mapping_type": "string",
+                                "match": "*"
+                            }
+                            }
+                        ],
+                        "properties": {
+                            "@timestamp": {
+                            "type": "date",
+                            "index": true,
+                            "ignore_malformed": false,
+                            "doc_values": true,
+                            "store": false
+                            },
+                            "junos_time": {
+                            "type": "date"
+                            },
+                            "received_at": {
+                            "type": "date"
+                            }
+                        }
+                        }
+                    },
+                    "index_patterns": [
+                        "{{ . }}*"
+                    ],
+                    "composed_of": [
+                        "logs-mappings",
+                        "logs-settings"
+                    ]
+                }'
+
+
+                # 3rd index
+
+                curl -X PUT  -k -u '{{$user}}:{{$password}}' "https://{{- printf "%s-%s" $clusterName $k8sSvcSubfix -}}:9200/%3C{{ . }}-%7Bnow%2Fd%7D-000001%3E" -H 'Content-Type: application/json' -d'
+                {
+                    "aliases": {
+                        "{{ . }}":{
+                            "is_write_index": true
+                            }
+                    }
+                }
+                '
+
+                {{end}}
+
+
+                echo done
+                exit 0
+              else
+                echo "waiting for es to be ready"
+                sleep 5
+              fi
+            done
+
+
+
+
+

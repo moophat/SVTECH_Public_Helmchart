@@ -1,0 +1,24 @@
+---
+{{- $basePath := .Values.global.basePath }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.global.sharedPersistenceVolume }}
+{{- if eq .storageClass "snmp-manager-hostpath" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ $namespace }}-snmp-manager-config-pv"
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  storageClassName: {{ $namespace }}-snmp-manager-hostpath
+  capacity:
+    storage: {{ .storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: {{ $basePath }}/{{ $namespace }}/snmp-manager-conf
+{{- end }}
+
+{{- end  }}

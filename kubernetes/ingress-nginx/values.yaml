@@ -1,0 +1,24 @@
+service:
+  type: LoadBalancer
+  # EXPOSE TCP PORTS FOR HTTP/HTTPS SERVICES
+  portFrontend:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP
+  # EXPOSE UDP/TCP PORTS FOR UDP/TCP SERVICES
+  portBackend:
+    # - name: logstash
+    #   port: 5515
+    #   targetPort: 5515
+    #   protocol: UDP
+    - name: snmp-manager
+      port: 162
+      targetPort: 162
+      protocol: UDP
+  loadBalancerSourceRanges: []
+  annotations: {}

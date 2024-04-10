@@ -1,0 +1,34 @@
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: rundeck-jsnapy-hostpath
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+
+---
+{{- $basePath := .Values.global.basePath }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.global.sharedPersistenceVolume }}
+{{- if eq .storageClass "rundeck-jsnapy-hostpath" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ $namespace }}-rundeck-jsnapy-pv"
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  storageClassName: {{ $namespace }}-rundeck-jsnapy-hostpath
+  capacity:
+    # storage: 10Gi 
+    storage: {{ .storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    # path: /opt/shared/rundeck_jsnapy
+    path: {{ $basePath }}/{{ $namespace }}/rundeck_jsnapy
+{{- end }}
+
+{{- end  }}

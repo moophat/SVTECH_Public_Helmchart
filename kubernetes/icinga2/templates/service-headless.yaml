@@ -1,0 +1,61 @@
+{{- if eq .Values.architecture "distribute" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-headless
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: icinga2
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: icinga2-api
+      port: {{ .Values.master.service.port.icinga2Api }}
+      targetPort: icinga2-api
+      protocol: TCP
+    - name: livestatus
+      port: {{ .Values.master.service.port.livestatus }}
+      targetPort: livestatus
+      protocol: TCP
+    - name: redis
+      port: {{ .Values.master.service.port.redis }}
+      targetPort: redis
+  selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-satellite-headless
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: icinga2
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: icinga2-api
+      port: {{ .Values.master.service.port.icinga2Api }}
+      targetPort: icinga2-api
+      protocol: TCP
+    - name: livestatus
+      port: {{ .Values.master.service.port.livestatus }}
+      targetPort: livestatus
+      protocol: TCP
+  selector: 
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Chart.Name }}-satellite
+
+{{- end }}

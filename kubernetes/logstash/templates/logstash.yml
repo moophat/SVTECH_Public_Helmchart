@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: debuger
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+    spec:
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      {{- end }}
+      initContainers:
+      - name: init-chown-data
+        image: busybox
+        command: ["sh", "-c", "mkdir -p /var/log/logstash && chown -R 1000:1000 /var/log/logstash"]
+        volumeMounts:
+        - name: host-var-log
+          mountPath: /var/log/
+      containers:
+        - name: logstash
+          env:
+            - name: ES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: es-basic-auth
+                  key: username
+            - name: ES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: es-basic-auth
+                  key: password
+            - name: TZ
+              value: {{ include "common.timezone" ( dict "timezone" .Values.timezone "global" .Values.global) }}
+          image: docker.elastic.co/logstash/logstash:{{.Values.global.elasticsearch.version}}
+          ports:
+          - name: health-check
+            containerPort: 9600
+            hostPort: 9600
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+
+          volumeMounts:
+          # general config
+          - name: general-config
+            mountPath: /usr/share/logstash/config/logstash.yml
+            subPath: logstash.yml
+          - name: general-config
+            mountPath: /usr/share/logstash/config/jvm.options
+            subPath: jvm.options
+          - name: general-config
+            mountPath: /usr/share/logstash/config/startup.options
+            subPath: startup.options
+          - name: general-config
+            mountPath: /usr/share/logstash/config/pipelines.yml
+            subPath: pipelines.yml
+
+          # patterns and dictionary for junos device log
+          - name: logstash-patterns
+            mountPath: /etc/logstash/patterns/
+          - name: logstash-dictionary-all-in-one
+            mountPath: /etc/logstash/dictionary/
+
+          # - name: logstash-dictionary
+          #   mountPath: /etc/logstash/dictionary/
+
+          # svtech-lab device management flow
+          - name: svtech-lab-online
+            mountPath: /etc/logstash/conf.d/svtech-lab-online/
+
+          # uploaded log from rundeck flow
+          - name: offline-log
+            mountPath: /etc/logstash/conf.d/offline/
+          - name: var-log-file
+            mountPath: /var/log/logstash
+
+
+      volumes:
+      # - name: tz-config
+      #   hostPath:
+      #     path: /usr/share/zoneinfo/Europe/Prague
+      #     type: File
+
+      # general config volume
+      - name: general-config
+        configMap:
+          name: logstash-general-config
+          items:
+            - key: logstash.yml
+              path: logstash.yml
+            - key: jvm.options
+              path: jvm.options
+            - key: startup.options
+              path: startup.options
+            - key: pipelines.yml
+              path: pipelines.yml
+
+      # patterns and dictionary for junos device log
+      - name: logstash-patterns
+        configMap:
+          name: logstash-patterns
+      - name: logstash-dictionary-all-in-one
+        projected:
+          sources:
+          - configMap:
+              name: logstash-dictionary
+          - configMap:
+              name: flat-facility
+          - configMap:
+              name: flat-severity
+          - configMap:
+              name: flat-type
+
+      # config volumes for svtech-lab device management flow
+      - name: svtech-lab-online
+        configMap:
+          name: online-log
+
+      # config volumes for uploaded log from rundeck flow
+      - name: offline-log
+        configMap:
+          name: offline-log
+      - name: var-log-file
+        hostPath:
+          path: /var/log/logstash
+          type: DirectoryOrCreate
+      - name: host-var-log
+        hostPath:
+          path: /var/log
+          type: Directory
+
+
+
+

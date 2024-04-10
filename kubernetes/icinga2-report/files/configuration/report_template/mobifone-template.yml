@@ -1,0 +1,99 @@
+- mapping-list:
+    level-1:
+      name: "Tỉnh"
+      code:
+        AGG: AGG
+        SRT: Site-Router
+- list-cell-format:
+    format-1:
+      condition-1:
+        is-equal: 0.5
+        color: green
+        type: N
+      condition-2:
+        less-than: 0.1
+        color: red
+        type: B
+      condition-3:
+        greater-than: 0.9
+        color: blue
+        type: B
+    format-2:
+      condition-1:
+        less-than: 0.1
+        color: green
+        type: N
+      condition-2:
+        greater-than: 0.1
+        color: red
+        type: B
+- excel-format:
+    #Sheet name
+    LinkCheck:
+      #Column name
+      host-filter-row:
+        AGG: null
+        SRT: null
+      LINK:
+        baseline: OK
+        filter:
+          - contains: IfCheck
+        format: format-1
+      OPTIC:
+        baseline: OK
+        filter:
+          - contains: IfOptic
+      DELAY:
+        baseline: OK
+        filter:
+          - contains: Delay
+      JITTER:
+        baseline: OK
+        filter:
+          - contains: Jitter
+      PacketLoss:
+        baseline: OK
+        filter:
+          - contains: pktLoss
+      LINK-10G:
+        baseline: CRITICAL
+        filter:
+          - contains: IfCheck
+          - not-contains: xe
+        format: format-2
+    HealthCheck:
+      host-filter-row:
+        AGG: null
+        SRT: null
+      CPU:
+        baseline: OK
+        filter:
+          - contains: Juniper_CPU
+      Linecard CPU:
+        baseline: OK
+        filter:
+          - contains: Linecard-CPU
+      MEM:
+        baseline: OK
+        filter:
+          - contains: Juniper_Memory
+      Linecard MEM:
+        baseline: OK
+        filter:
+          - contains: Linecard-MEM
+      TEMP:
+        baseline: OK
+        filter:
+          - contains: Juniper_Temperature
+      Linecard TEMP:
+        baseline: OK
+        filter:
+          - contains: Linecard-TEMP
+      SFP TEMP:
+        baseline: OK
+        filter:
+          - contains: ModuleTemp
+      Hardware:
+        baseline: OK
+        filter:
+          - contains: Juniper_Environment

@@ -1,0 +1,16 @@
+apiVersion: v2
+annotations:
+  category: Proxy
+name: proxy
+description: SVTECH Proxy
+engine: gotpl
+
+dependencies:
+  - name: common
+    repository: file://../common
+    tags:
+      - bitnami-common
+    version: 1.x.x
+
+version: 1.0.0
+appVersion: "v1.0.0"

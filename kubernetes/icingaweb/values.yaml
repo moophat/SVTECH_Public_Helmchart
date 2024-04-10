@@ -1,0 +1,172 @@
+timezone: Asia/Ho_Chi_Minh
+
+
+init:
+  image:
+    registry: docker.io
+    repository: busybox
+    tag: "1.33"
+    pullPolicy: IfNotPresent
+image:
+  repository: svtechnmaa/svtech_icingaweb2
+  tag: v1.0.2
+  pullPolicy: IfNotPresent
+  debug: false
+containerPort:
+  icingaweb: 8080
+# Icingaweb authentication variables
+auth:
+  type: db
+  #resource: # Add the name of the db resource used by Icinga Web 2 here. Default: Values.global.database.icingaweb2.database
+  admin_user: icingaweb
+  admin_password: juniper@123
+# Icingaweb module variables
+modules:
+  director:
+    enabled: true
+    kickstart: true
+  icingadb:
+    enabled: true
+  incubator:
+    enabled: true
+  grafana:
+    enabled: true
+    host: "10.98.6.16/grafana" # externalIP/grafana
+    default_dashboard: Service Detail
+    default_dashboard_uid: service-detail
+    default_dashboard_panelid: "2"
+env:
+  TZ: Asia/Ho_Chi_Minh
+
+clusterDomain: cluster.local
+commonAnnotations: {}
+commonLabels: {}
+
+replicaCount: 2
+
+persistence:
+  enabled: true
+  storageClass: "icingaweb"
+  accessModes:
+    - ReadWriteOnce
+  size: 10Mi
+  # mountPath on Container
+  mountPath: /data
+  # hostPath: mount path on Host
+  hostPath: icingaweb_conf # full path: {{ $basePath }}/{{ $namespace }}/{{ $hostPath }}. Eg: /opt/shared/default/icingaweb_config
+
+updateStrategy: RollingUpdate
+podManagementPolicy: OrderedReady
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  ## Node affinity type
+  ## Allowed values: soft, hard
+  type: ""
+  ## Node label key to match
+  ## E.g.
+  ## key: "kubernetes.io/e2e-az-name"
+  ##
+  key: ""
+  ## Node label values to match
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+
+
+## Affinity for pod assignment
+## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+##
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: icingaweb
+          # app.kubernetes.io/instance: nms
+          app.kubernetes.io/name: icingaweb
+      topologyKey: app.kubernetes.io/hostname
+
+## Node labels for pod assignment
+nodeSelector: {}
+
+## Tolerations for pod assignment
+tolerations: []
+
+## Extra volumes to add to the deployment
+extraVolumes: []
+
+## Extra volume mounts to add to the container
+extraVolumeMounts: []
+
+securityContext:
+  enabled: true
+  runAsGroup: 33
+  runAsUser: 33
+
+resources:
+  limits: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 180
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+
+## Custom Liveness probe
+customLivenessProbe: {}
+
+## Custom Readiness probe
+customReadinessProbe: {}
+
+## Container ports
+containerPorts:
+  # icinga2Api: 5665
+  # livestatus: 6558
+
+
+service:
+  ## Service type
+  ##
+  type: ClusterIP
+  port: 8080
+
+  # loadBalancerIP:
+  # loadBalancerSourceRanges:
+  # - 10.10.10.0/24
+
+  # externalIPs: ["10.98.0.143"]
+
+  ## Set the Cluster IP to use
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address
+  ##
+  # clusterIP: None
+  ## Provide any additional annotations which may be required
+  ##
+  annotations: {}
+  ## Set the service SessionAffinity for session stickiness
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-userspace
+  sessionAffinity: ClientIP
+
+  # ## Customize the SessionAffinity configuration. The default value for sessionAffinityConfig.clientIP.timeoutSeconds is 10800 (3 hours)
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 7200

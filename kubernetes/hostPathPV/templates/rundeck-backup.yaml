@@ -1,0 +1,34 @@
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: rundeck-backup-hostpath
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+
+---
+{{- $basePath := .Values.global.basePath }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.global.sharedPersistenceVolume }}
+{{- if eq .storageClass "rundeck-backup-hostpath" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ $namespace }}-rundeck-backup-pv"
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  storageClassName: {{ $namespace }}-rundeck-backup-hostpath
+  capacity:
+    # storage: 10Gi 
+    storage: {{ .storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    # path: /opt/shared/rundeck_backup
+    path: {{ $basePath }}/{{ $namespace }}/rundeck_backup
+{{- end }}
+
+{{- end  }}

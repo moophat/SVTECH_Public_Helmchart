@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: rundeck-option-provider
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.updateStrategy }}
+    {{- if (eq "Recreate" .Values.updateStrategy) }}
+    rollingUpdate: null
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: rundeck-option-provider
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        app.kubernetes.io/component: rundeck-option-provider
+    spec:
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      {{- end }}
+      restartPolicy:
+
+      {{- if .Values.init }}
+      initContainers:
+        - name: wait-for-init-repo
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.init.image) }}
+          imagePullPolicy: {{ .Values.init.image.pullPolicy | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+                until [ `ls -A /opt/SVTECH-Junos-Automation | grep 'completed' | wc -l` != 0 ];
+                do
+                  echo "Waiting for Init Repo...";
+                  sleep 2;
+                done
+
+          volumeMounts:
+          {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+            {{- range .Values.global.sharedPersistenceVolume }}
+
+            {{- if has "rundeck-option-provider" .shareFor }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .path }}
+            {{- end }}
+
+            {{- end }}
+          {{- end  }}
+      {{- end }}
+
+      imagePullSecrets:
+      - name: ghcr-pull-secret
+
+      containers:
+        - name: "rundeck-option-provider"
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+          {{- end }}
+          # command:
+          #   - /bin/bash
+          #   - -c
+          #   - |
+          #       git config --global --add safe.directory "*"
+          #       chown rundeck-option-provider:rundeck-option-provider /etc/icinga2/zones.d -R
+          #       chmod 777 /etc/icinga2/zones.d -R
+          #       su rundeck-option-provider -c 'git config --global --add safe.directory "*"
+          #                     git config --global user.name rundeck-option-provider && \
+          #                     git config --global user.email rundeck-option-provider@localhost'
+          #       /tini -- /home/rundeck-option-provider/docker-lib/entry.sh
+          env:
+            - name: TZ
+              value: {{ include "common.timezone" ( dict "timezone" .Values.timezone "global" .Values.global) }}
+
+          ports:
+            - name: "rundeckop"
+              containerPort: 1111
+
+          volumeMounts:
+          {{- if .Values.datasources }}
+            - name: "rundeck-option-provider"
+              mountPath: /opt/SVTECH-Junos-Automation/addition_toolkit/rundeck_options_API/datasources.yml
+              subPath: datasources.yml
+          {{- end }}
+
+          {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+            {{- range .Values.global.sharedPersistenceVolume }}
+
+            {{- if has "rundeck-option-provider" .shareFor }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .path }}
+            {{- end }}
+
+            {{- end }}
+
+          {{- end  }}
+
+      volumes:
+        {{- if .Values.datasources }}
+        - name: "rundeck-option-provider"
+          configMap:
+            name: {{ include "common.names.fullname" . }}-datasources
+        {{- end }}
+
+      {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+        {{- range .Values.global.sharedPersistenceVolume }}
+
+        {{- if has "rundeck-option-provider" .shareFor }}
+        - name: {{ .volumeName }}
+          persistentVolumeClaim:
+            claimName: {{ .pvcName }}
+        {{- end }}
+
+        {{- end }}
+
+      {{- end  }}

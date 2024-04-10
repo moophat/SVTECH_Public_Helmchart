@@ -1,0 +1,148 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "init-grafana-data"
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-init-repo
+          image: {{ include "common.images.image" ( dict "imageRoot" .Values.init.image ) }}
+          imagePullPolicy: {{ .Values.init.image.pullPolicy | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+                until [ `ls -A /opt/SVTECH-Junos-Automation | grep 'completed' | wc -l` != 0 ];
+                do
+                  echo "Waiting for Init Repo...";
+                  sleep 2;
+                done
+
+          volumeMounts:
+          {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+            {{- range .Values.global.sharedPersistenceVolume }}
+
+            {{- if has "init-data-grafana" .shareFor }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .path }}
+            {{- end }}
+
+            {{- end }}
+          {{- end  }}      
+      containers:
+      - name: init-data
+        image: {{ include "common.images.image" ( dict "imageRoot" .Values.image "global" .Values.global ) }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        command:
+          - bash
+          - -ec
+          - |
+              GRAFANA_HOST={{ .Chart.Name }}
+              TIMEOUT=${TIMEOUT:-360}
+              result=false
+              grafana_stats=""
+              function grafana_is_up {
+                  sleep 1
+                  if [ "${TIMEOUT}" == 0 ]; then
+                      echo "Timeout Waiting grafana Up !"
+                      result="timeout"
+                      return 0;
+                  fi
+                  echo "Waiting grafana Up ..."
+                  grafana_stats=`curl -X GET -u thrukadmin:thrukadmin http://$GRAFANA_HOST:3000/api/admin/stats`
+                  if [ $? == 0 ]; then
+                      result="up"
+                      echo "Grafana is Up"
+                      true
+                  else
+                      TIMEOUT=$(expr $TIMEOUT - 1)
+                      false
+                  fi
+
+                  return $?;
+              }
+              function import_grafana_entities {
+                  while ! grafana_is_up ; do true; done
+                  grafana_dashboard_number=`echo $grafana_stats | python2 -c "import sys, json; print json.load(sys.stdin)['dashboards']"`
+                  grafana_datasource_number=`echo $grafana_stats | python2 -c "import sys, json; print json.load(sys.stdin)['datasources']"`
+                  if [ "${result}" == "up" ]; then
+                      if [[ ${grafana_dashboard_number} == 0 && ${grafana_datasource_number} == 0 ]]; then
+
+                          echo "Init wizzy configuration"
+                          cd /opt/grafana-entities && \
+                            wizzy set grafana url http://$GRAFANA_HOST:3000 && \
+                            wizzy set grafana username thrukadmin && \
+                            wizzy set grafana password thrukadmin
+
+                          echo "No Dashboard and Datasource. Import Dashboards:"
+                          cd /opt/grafana-entities && wizzy export dashboards
+
+                          echo "No Dashboard and Datasource. Import Datasource:"
+                          mkdir -p /tmp/grafana-entities/datasources
+                          # cp -rf /opt/grafana-entities/datasources/..data/* /tmp/grafana-entities/datasources
+                          cp -rf /opt/grafana-entities/datasources/* /tmp/grafana-entities/datasources
+
+                          cp -rf /opt/grafana-entities/conf /tmp/grafana-entities
+                          # sed -i 's,%ReleaseName,{{ .Release.Name }},g' /tmp/grafana-entities/datasources/*
+                          cd /tmp/grafana-entities && wizzy export datasources
+                      else
+                          echo "There are ${grafana_dashboard_number} dasboards and ${grafana_datasource_number} datasources exists. Take no action !"
+                      fi
+                  fi
+              }
+
+              rm -rf /opt/grafana-entities/dashboards
+              cp -rf /opt/SVTECH-Junos-Automation/grafana-entities/datasources /opt/grafana-entities
+              cp -rf /opt/SVTECH-Junos-Automation/grafana-entities/dashboards /opt/grafana-entities
+
+              for file in `grep -lr /opt/grafana-entities/* -e "\"refresh\": 1"`;do sed -i 's/"refresh": 1,/"refresh": 2,/g' $file ;done
+              import_grafana_entities
+
+      {{- if .Files.Glob "files/datasources/*" }}
+        volumeMounts:
+          # - name: grafana-datasources
+          #   mountPath: /opt/grafana-entities/datasources
+          {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+            {{- range .Values.global.sharedPersistenceVolume }}
+
+            {{- if has "init-data-grafana" .shareFor }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .path }}
+            {{- end }}
+
+            {{- end }}
+          {{- end  }}  
+
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}    
+
+      imagePullSecrets:
+      - name: ghcr-pull-secret        
+
+      volumes:
+        # - name: grafana-datasources
+        #   configMap:
+        #     name: {{ include "common.names.fullname" . }}-datasources
+        {{- range .Values.global.sharedPersistenceVolume }}
+
+        {{- if has "init-data-grafana" .shareFor }}
+        - name: {{ .volumeName }}
+          persistentVolumeClaim:
+            claimName: {{ .pvcName }}
+        {{- end }}
+
+        {{- end }}            
+      {{- end }}

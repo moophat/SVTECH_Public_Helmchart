@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  # namespace: elastic-system
+  labels:
+    k8s-app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat:
+      inputs:
+      # - enabled: false
+      #   paths:
+      #   - /var/logs/*.log
+      #   type: log
+      # - enabled: false
+      #   paths:
+      #   - /var/log/*.log
+      #   type: filestream
+      - enabled: true
+        recursive_glob.enabled: true
+        paths:
+        - {{ .Values.global.rundeck.offlineLogFolder }}/*/*/*
+        exclude_files: ['\.swp$']
+        fields:
+          type: junos_offlog
+        close_inactive: 3000m
+
+    filebeat.config.modules:
+      path: ${path.config}/modules.d/*.yml
+      reload.enabled: true
+      reload.period: 30s
+    logging.metrics.enabled: false
+    setup:
+      filebeat.modules:
+        module: cisco
+
+    filebeat.modules:
+    - module: cisco
+      ios:
+        enabled: true
+        var.input: syslog
+        var.syslog_host: 0.0.0.0
+        var.syslog_port: 9001
+        var.syslog_protocol: udp
+    - module: juniper
+      junos:
+        enabled: true
+        var.input: udp
+        var.syslog_host: 0.0.0.0
+        var.syslog_port: 9006
+
+    # output.elasticsearch:
+    #   hosts: ["https://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"]
+    #   username: "${ELASTICSEARCH_USERNAME}"
+    #   password: "${ELASTICSEARCH_PASSWORD}"
+    #   # If using Elasticsearch's default certificate
+    #   # ssl.ca_trusted_fingerprint: "<es cert fingerprint>"
+    #   ssl.verification_mode: none
+    setup.kibana:
+      host: {{ .Values.global.elasticsearch.clusterName }}-kb-http:5601
+
+    ###############################################################################
+    ############################# Libbeat Config ##################################
+    # Base config file used by all other beats for using libbeat features
+
+    ############################# Output ##########################################
+    # fix this
+    output:
+      logstash:
+        bulk_max_size: 50
+        hosts:
+        # - 10.98.100.101:30555
+        # - 10.98.100.102:30555
+        # - 10.98.100.103:30555
+        - {{ .Values.global.logstash.loadBalancerIP }}:5555 # one logstash at a time, since ExtTrafPo: Local
+        #- 10.98.0.152:6666
+        loadbalance: true
+
+
+    ############################# Logging #########################################
+
+    # logging:
+    #   files:
+    #     rotateeverybytes: 10485760
+    #   level: warning
+
+    http.enabled: true
+    http.port: 5067
+    monitoring.enabled: false
+    http.host: 0.0.0.0

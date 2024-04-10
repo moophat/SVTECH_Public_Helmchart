@@ -1,0 +1,145 @@
+global:
+  sharedVolume:
+    enabled: false
+
+timezone: Asia/Ho_Chi_Minh
+
+image:
+  repository: svtechnmaa/svtech_nagvis
+  tag: "v1.2.1"
+
+  pullPolicy: IfNotPresent
+  # debug: true
+
+clusterDomain: cluster.local
+commonAnnotations:
+  helm.sh/hook-weight: "0"
+commonLabels: {}
+
+replicaCount: 2
+
+updateStrategy: RollingUpdate
+podManagementPolicy: OrderedReady
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  ## Node affinity type
+  ## Allowed values: soft, hard
+  type: ""
+  ## Node label key to match
+  ## E.g.
+  ## key: "kubernetes.io/e2e-az-name"
+  ##
+  key: ""
+  ## Node label values to match
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+
+
+## Affinity for pod assignment
+## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+##
+affinity: {}
+
+## Node labels for pod assignment
+nodeSelector: {}
+
+## Tolerations for pod assignment
+tolerations: []
+
+## Extra volumes to add to the deployment
+extraVolumes: []
+
+## Extra volume mounts to add to the container
+extraVolumeMounts: []
+
+# ## Volumes
+# persistence:
+#   # mountPath on Container
+#   mountPath: /usr/share/nagvis/etc/maps
+
+#   # hostPath: mount path on Host
+#   hostPath: /opt/k8s_project/nms_project/charts/nagvis/files/maps
+#   selector: {}
+
+
+securityContext:
+  enabled: false
+  fsGroup: 0
+  runAsUser: 0
+
+resources:
+  limits: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 180
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+
+## Custom Liveness probe
+customLivenessProbe: {}
+
+## Custom Readiness probe
+customReadinessProbe: {}
+
+## Container ports
+containerPorts:
+  # icinga2Api: 5665
+  # livestatus: 6558
+
+service:
+  ## Service type
+  ##
+  type: ClusterIP
+  # type: NodePort
+  port: 80
+
+  # loadBalancerIP:
+  # loadBalancerSourceRanges:
+  # - 10.10.10.0/24
+
+  # externalIPs: ["10.98.0.143"]
+
+  ## Set the Cluster IP to use
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address
+  ##
+  # clusterIP: None
+  ## Provide any additional annotations which may be required
+  ##
+  externalIPs: []
+  annotations: {}
+  ## Set the service SessionAffinity for session stickiness
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-userspace
+  sessionAffinity: ClientIP
+
+  ## Customize the SessionAffinity configuration. The default value for sessionAffinityConfig.clientIP.timeoutSeconds is 10800 (3 hours)
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 7200
+
+nagvisConfig:
+  backendName: NMS
+  backendId: NMS
+  backendType: mklivestatus
+  backendIp: icinga2
+  backendPort: 6558

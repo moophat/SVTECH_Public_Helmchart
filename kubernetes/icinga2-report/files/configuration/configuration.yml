@@ -1,0 +1,110 @@
+##################################################################################
+#This configuration file is used to set up the filter for the icinga2-report function. Admin can modify this file to
+#add more options for end user. After modifying the configuration file, admin needs to restart icinga2-report service.
+##################################################################################
+# rest_api_config: help to filter the return attribute for case "delete" attribute.
+rest_api_config:
+  # git_config_location: The directory of git folder to read the configuration from remote server. It helps us to check
+  # if an attribute exists in setting file of icinga2 or not.
+  git_config_location: ''
+  # The return attribute for end user.
+  configure_option:
+    host:
+      filter:
+      - display_name
+      - address
+      - vars
+    hostgroup:
+      filter:
+      - display_name
+      - name
+    servicegroup:
+      filter:
+      - display_name
+      - name
+    user:
+      filter:
+      - display_name
+      - email
+      - name
+# report_json_config: help to filter the return key word for "report" feature on Grafana. Because livestatus is different
+# from rest_api, so, for each object filter (host or service), the key words are different. Hence, it needs to be specified
+# for each object filter.
+report_json_config:
+  # For the query: "GET services"
+  service_filter_query:
+    host:
+      filter:
+      - host_name
+    service:
+      filter:
+      - display_name
+      - host_state
+  # For the query: "GET hosts"
+  host_filter_query:
+    host: null #To be defined
+    service: null #To be defined
+
+# replace_thruk_config: help to filter the return key word for the panel which is used to replace thruk on Grafana.
+replace_thruk_config:
+  hosts:
+    - display_name
+    - address
+    - groups
+    - state
+    - state_type
+    - custom_variable_names
+    - custom_variable_values
+    - custom_variables
+  services:
+    - display_name
+    - host_name
+    - host_state
+    - host_groups
+    - host_address
+    - state
+    - groups
+    - contacts
+    - state_type
+    - custom_variable_names
+    - custom_variable_values
+    - custom_variables
+  hostgroups:
+    - name
+    - alias
+    - members
+    - num_hosts
+    - num_hosts_pending
+    - num_hosts_up
+    - num_hosts_down
+    - num_hosts_unreach
+    - num_services
+    - num_services_pending
+    - num_services_ok
+    - num_services_warn
+    - num_services_crit
+    - num_services_unknown
+  servicegroups:
+    - name
+    - alias
+    - members
+    - num_services
+    - num_services_pending
+    - num_services_ok
+    - num_services_warn
+    - num_services_crit
+    - num_services_unknown
+  contacts:
+    - name
+    - alias
+    - email
+    - pager
+    - host_notification_period
+    - service_notification_period
+    - custom_variables
+    - custom_variable_names
+    - custom_variable_values
+  contactgroups:
+    - name
+    - alias
+    - members

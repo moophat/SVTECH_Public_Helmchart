@@ -1,0 +1,22 @@
+{{ if .Values.service.portBackend }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-backend
+  namespace: {{ .Values.global.ingressNamespace }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+  {{ if .Values.global.backendVip }}
+  loadBalancerIP: {{ .Values.global.backendVip }}
+  {{ end }}
+  ports:
+    {{ range .Values.service.portBackend }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+    {{ end }}
+{{ end }}

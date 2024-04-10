@@ -1,0 +1,250 @@
+global:
+  sharedVolume:
+    enabled: false
+
+timezone: Asia/Ho_Chi_Minh
+
+init:
+  image:
+    registry: docker.io
+    repository: busybox
+    tag: "1.33"
+    pullPolicy: IfNotPresent
+
+image:
+  repository: svtechnmaa/svtech_icinga2
+  tag: "v1.1.6"
+  pullPolicy: IfNotPresent
+
+sidecar:
+  image:
+    repository: svtechnmaa/svtech_icinga2
+    tag: "v1.1.6"
+    pullPolicy: IfNotPresent
+
+clusterDomain: cluster.local
+commonAnnotations:
+  helm.sh/hook-weight: "0"
+commonLabels: {}
+
+## architecture: standalone or distribute.
+## - standalone: just master
+## - distribute: distributed monitoring with master-satellite cluster
+architecture: distribute
+
+### Master
+master:
+  replicaCount: 2
+
+  updateStrategy: RollingUpdate
+  podManagementPolicy: OrderedReady
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+
+  nodeAffinityPreset:
+    ## Node affinity type
+    ## Allowed values: soft, hard
+    type: ""
+    ## Node label key to match
+    ## E.g.
+    ## key: "kubernetes.io/e2e-az-name"
+    ##
+    key: ""
+    ## Node label values to match
+    ## E.g.
+    ## values:
+    ##   - e2e-az1
+    ##   - e2e-az2
+    ##
+    values: []
+
+  ## Affinity for pod assignment
+  ## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+  ##
+  affinity: {}
+
+  ## Node labels for pod assignment
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  tolerations: []
+
+  ## Extra volumes to add to the deployment
+  extraVolumes: []
+
+  ## Extra volume mounts to add to the container
+  extraVolumeMounts: []
+
+  securityContext:
+    enabled: false
+    fsGroup: 0
+    runAsUser: 0
+
+  resources:
+    limits: {}
+    #   cpu: 100m
+    #   memory: 128Mi
+    requests: {}
+    #   cpu: 100m
+    #   memory: 128Mi
+
+
+  livenessProbe:
+    enabled: false
+    initialDelaySeconds: 180
+    periodSeconds: 45
+    timeoutSeconds: 30
+    successThreshold: 1
+    failureThreshold: 6
+  readinessProbe:
+    enabled: false
+    initialDelaySeconds: 60
+    periodSeconds: 45
+    timeoutSeconds: 30
+    successThreshold: 1
+    failureThreshold: 6
+
+  ## Custom Liveness probe
+  customLivenessProbe: {}
+
+  ## Custom Readiness probe
+  customReadinessProbe: {}
+
+  ## Container ports
+  containerPorts:
+    icinga2Api: 5665
+    livestatus: 6558
+
+  # persistence:
+  #   enabled: true
+  #   # # mountPath on Container
+  #   # mountPath: /etc/icinga2
+
+  #   # hostPath: mount path on Host
+  #   hostPath: /opt/k8s_configurations/icinga2
+
+  influxdb_connection:
+    enable: true
+    influxdb_host: influxdb-relay
+    influxdb_port: 9096
+    influxdb_database: influxdb_nms
+    influxdb_user: juniper
+    influxdb_password: juniper@123
+
+  ido_connection:
+    enable: false
+    ido_host: "mariadb"
+    ido_port: 3306
+    ido_user: icinga
+    ido_password: juniper@123
+    ido_database: icinga
+    ido_catagories: '["DbCatConfig", "DbCatState", "DbCatAcknowledgement", "DbCatComment", "DbCatDowntime", "DbCatEventHandler", "DbCatFlapping", "DbCatNotification", "DbCatProgramStatus", "DbCatRetention", "DbCatStateHistory"]'
+    ido_cleanup_statehistory: 90d
+    ido_cleanup_notificaion: 90d
+    ido_cleanup_servicecheck: 7d
+
+  notifications:
+    enable: false
+    mailhub_host: "postfix"
+    mailhub_port: 25
+    relay_email: "ha.do@svtech.com.vn"
+
+  # icingadb container
+  icingadb:
+    image:
+      registry: docker.io
+      repository: svtechnmaa/svtech_icingadb
+      tag: v1.1.2
+      pullPolicy: IfNotPresent
+      debug: false
+    env:
+      TZ: Asia/Ho_Chi_Minh
+      # RETENTION_HISTORY_DAYS: 30
+      # RETENTION_OPTION_ACKNOWLEDGEMENT: 30
+      # RETENTION_OPTION_COMMENT: 30
+      # RETENTION_OPTION_DOWNTIME: 30
+      # RETENTION_OPTION_FLAPPING: 30
+      # RETENTION_OPTION_NOTIFICATION: 30
+      # RETENTION_OPTION_STATE: 30
+  # redis container
+  redis:
+    image:
+      registry: docker.io
+      repository: redis
+      tag: 7.2.3
+      pullPolicy: IfNotPresent
+      debug: false
+    containerPort:
+      redis: 6379
+    env:
+      TZ: Asia/Ho_Chi_Minh
+    service:
+      type: ClusterIP
+      port: 6379
+    persistence:
+      enabled: false
+      storageClass: "redis"
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+      # mountPath: the destination inside the pod
+      mountPath: /data
+      # hostPath: mount a file or directory from the host node's filesystem into the pod
+      hostPath: /data/redis
+
+  service:
+    ## Service type
+    ##
+    type: ClusterIP
+    externalIPs: []
+
+    port:
+      icinga2Api: 5665
+      livestatus: 6558
+      redis: 6379
+
+    nodePorts:
+      icinga2Api: ""
+      livestatus: ""
+
+    # loadBalancerIP:
+    # loadBalancerSourceRanges:
+    # - 10.10.10.0/24
+
+    ## Set the Cluster IP to use
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address
+    ##
+    # clusterIP: None
+    ## Provide any additional annotations which may be required
+    ##
+    annotations: {}
+    ## Set the service SessionAffinity for session stickiness
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-userspace
+    # sessionAffinity: ClientIP
+
+    ## Customize the SessionAffinity configuration. The default value for sessionAffinityConfig.clientIP.timeoutSeconds is 10800 (3 hours)
+    # sessionAffinityConfig:
+    #   clientIP:
+    #     timeoutSeconds: 300
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: icinga2
+            # app.kubernetes.io/instance: nms
+            app.kubernetes.io/name: icinga2
+        topologyKey: kubernetes.io/hostname
+
+satellite:
+  replicaCount: 3
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+                - icinga2-satellite
+        topologyKey: kubernetes.io/hostname

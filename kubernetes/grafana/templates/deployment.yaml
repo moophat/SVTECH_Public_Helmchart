@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.updateStrategy }}
+    {{- if (eq "Recreate" .Values.updateStrategy) }}
+    rollingUpdate: null
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: grafana
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        app.kubernetes.io/component: grafana
+    spec:
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      {{- end }}
+
+      {{- if .Values.init }}
+      initContainers:
+        - name: wait-for-mariadb
+          image: {{ include "common.images.image" ( dict "imageRoot" .Values.init.image ) }}
+          imagePullPolicy: {{ .Values.init.image.pullPolicy | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              {{- if .Values.grafanaConfig.mysqlHost }}
+              until nc -zvw5 {{ .Values.grafanaConfig.mysqlHost }} 3306; do echo "Waiting for MariaDB..."; sleep 2; done
+              {{- else }}
+              until nc -zvw5 mariadb 3306; do echo "Waiting for MariaDB..."; sleep 2; done
+              {{- end }}
+      {{- end }}
+
+      containers:
+        - name: grafana
+          image: {{ include "common.images.image" ( dict "imageRoot" .Values.image "global" .Values.global ) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+          {{- end }}
+
+          env:
+            - name: MYSQL_HOST
+              value: {{ .Values.grafanaConfig.mysqlHost | quote }}
+            - name: MYSQL_PORT
+              value: {{ .Values.grafanaConfig.mysqlPort | quote }}
+            - name: MYSQL_DB
+              value: {{ .Values.grafanaConfig.mysqlDB | quote }}
+            - name: MYSQL_USER
+              value: {{ .Values.grafanaConfig.mysqlUser | quote }}
+            - name: MYSQL_PASSWORD
+              value: {{ .Values.grafanaConfig.mysqlPassword | quote }}
+            - name: ADMIN_USER
+              value: {{ .Values.grafanaConfig.adminUser | quote }}
+            - name: ADMIN_PASSWORD
+              value: {{ .Values.grafanaConfig.adminPassword | quote }}
+            - name: TZ
+              value: {{ include "common.timezone" ( dict "timezone" .Values.timezone "global" .Values.global) }}
+            - name: GF_INSTALL_PLUGINS
+              value: briangann-datatable-panel
+
+          ports:
+            - name: grafana
+              containerPort: 3000
+      imagePullSecrets:
+      - name: ghcr-pull-secret
+

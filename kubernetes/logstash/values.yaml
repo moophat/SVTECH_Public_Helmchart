@@ -1,0 +1,19 @@
+timezone: Asia/Ho_Chi_Minh
+replicas: 2
+heapSize: 1001m
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: "app"
+          operator: In
+          values:
+          - logstash
+      topologyKey: "kubernetes.io/hostname"
+
+service:
+  type: LoadBalancer
+
+securityContext: {}

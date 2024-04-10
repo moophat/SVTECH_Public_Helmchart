@@ -1,0 +1,17 @@
+apiVersion: v2
+name: nagvis
+description: SVTECH Nagvis
+engine: gotpl
+
+annotations:
+  category: Frontend
+
+dependencies:
+  - name: common
+    repository: file://../common
+    tags:
+      - bitnami-common
+    version: 1.x.x
+
+version: 1.0.0
+appVersion: "v1.0.0"

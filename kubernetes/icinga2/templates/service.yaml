@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+  {{- if .Values.master.service.annotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" .Values.master.service.annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.master.service.type }}
+  {{- if and (eq .Values.master.service.type "LoadBalancer") (not (empty .Values.master.service.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.master.service.loadBalancerIP }}
+  {{- end }}
+  {{- if and (eq .Values.master.service.type "LoadBalancer") .Values.master.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges: {{- toYaml .Values.master.service.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  {{- if .Values.master.service.externalIPs }}
+  externalIPs: {{- toYaml .Values.master.service.externalIPs | nindent 4 }}
+  {{- end }}
+  {{- if and (eq .Values.master.service.type "ClusterIP") .Values.master.service.clusterIP }}
+  clusterIP: {{ .Values.master.service.clusterIP }}
+  {{- end }}
+  ports:
+    - name: icinga2-api
+      port: {{ .Values.master.service.port.icinga2Api }}
+      targetPort: icinga2-api
+      {{- if and .Values.master.service.nodePorts.icinga2Api (or (eq .Values.master.service.type "NodePort") (eq .Values.master.service.type "LoadBalancer")) }}
+      nodePort: {{ .Values.master.service.nodePorts.icinga2Api }}
+      {{- else if eq .Values.master.service.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    - name: livestatus
+      port: {{ .Values.master.service.port.livestatus }}
+      targetPort: livestatus
+      {{- if and .Values.master.service.nodePorts.livestatus (or (eq .Values.master.service.type "NodePort") (eq .Values.master.service.type "LoadBalancer")) }}
+      nodePort: {{ .Values.master.service.nodePorts.livestatus }}
+      {{- else if eq .Values.master.service.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    - name: redis
+      port: {{ .Values.master.service.port.redis }}
+      targetPort: redis
+      {{- if and .Values.master.service.nodePorts.redis (or (eq .Values.master.service.type "NodePort") (eq .Values.master.service.type "LoadBalancer")) }}
+      nodePort: {{ .Values.master.service.nodePorts.redis }}
+      {{- else if eq .Values.master.service.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+  selector: {{- include "common.labels.matchLabels" . | nindent 4 }}

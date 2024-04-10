@@ -1,0 +1,59 @@
+# Proxy Chart
+
+## Tree level
+
+```
++--- Chart.yaml : Chart information and dependencies (you can use as {{ .Chart }} variable on template files )
++--- files
+|   +--- images
+|   |   +--- automation-icon.png
+|   |   +--- backup-icon.png
+|   |   +--- checklist-icon-checklist-icon.png
+|   |   +--- dashboard-svg-icon.png
+|   |   +--- logging-icon.png
+|   |   +--- topology-icon.png
+|   +--- index.html
++--- README.md
++--- templates : define your template files in this folder
+|   +--- configmap-index.yaml
+|   +--- configmap-proxy.yaml
+|   +--- deployment.yaml
+|   +--- service.yaml
+|   +--- _helpers.tpl : define your custom template variable here, and you can create new file .tpl
++--- values.yaml : define {{ .Values }} variable to use in template files
+```
+
+## How to use
+
+- Clone this Container repo to /opt:
+    ```
+    cd /opt
+    git clone https://github.com/moophat/SVTECH_Projects_Container.git
+
+- Edit values.yaml at /opt/SVTECH_Projects_Container/kubernetes/nms_project/charts/proxy
+    - You can change value at values.yaml file to apply your case:
+        - timezone
+        - image: registry, repository, tag
+        - replicaCount
+        - service: type, port, externalIPs
+        - configuration
+- Start chart alone:
+    ```
+    helm install proxy /opt/SVTECH_Projects_Container/kubernetes/nms_project/charts/proxy
+    ```
+
+- Verify:
+    - Check Pods
+        ```
+        kubectl get pods
+        ```
+    - Check service
+        ```
+        kubectl get svc
+        ```
+
+- Uninstallation:
+    ```
+    helm uninstall proxy
+    ```
+

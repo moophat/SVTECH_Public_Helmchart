@@ -1,0 +1,163 @@
+global:
+  sharedVolume:
+    enabled: false
+
+timezone: Asia/Ho_Chi_Minh
+
+init:
+  image:
+    registry: docker.io
+    repository: busybox
+    tag: "1.33"
+
+    pullPolicy: IfNotPresent
+
+image:
+  repository: svtechnmaa/svtech_rundeck
+  tag: "v1.2.1"
+
+  pullPolicy: IfNotPresent
+
+clusterDomain: cluster.local
+commonAnnotations:
+  helm.sh/hook-weight: "0"
+commonLabels: {}
+
+replicaCount: 1
+
+updateStrategy: RollingUpdate
+podManagementPolicy: OrderedReady
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  ## Node affinity type
+  ## Allowed values: soft, hard
+  type: ""
+  ## Node label key to match
+  ## E.g.
+  ## key: "kubernetes.io/e2e-az-name"
+  ##
+  key: ""
+  ## Node label values to match
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+
+
+## Affinity for pod assignment
+## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+##
+affinity: {}
+
+## Node labels for pod assignment
+nodeSelector: {}
+
+## Tolerations for pod assignment
+tolerations: []
+
+## Extra volumes to add to the deployment
+extraVolumes: []
+
+## Extra volume mounts to add to the container
+extraVolumeMounts: []
+
+securityContext:
+  enabled: false
+  fsGroup: 0
+  runAsUser: 0
+
+resources:
+  limits: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 180
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 45
+  timeoutSeconds: 30
+  successThreshold: 1
+  failureThreshold: 6
+
+## Custom Liveness probe
+customLivenessProbe: {}
+
+## Custom Readiness probe
+customReadinessProbe: {}
+
+## Container ports
+containerPorts:
+  # icinga2Api: 5665
+  # livestatus: 6558
+
+service:
+  ## Service type
+  ##
+  type: ClusterIP
+  port: 4440
+
+  # loadBalancerIP:
+  # loadBalancerSourceRanges:
+  # - 10.10.10.0/24
+
+  # externalIPs: ["10.98.0.143"]
+
+  ## Set the Cluster IP to use
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address
+  ##
+  # clusterIP: None
+  ## Provide any additional annotations which may be required
+  ##
+  annotations: {}
+  ## Set the service SessionAffinity for session stickiness
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#proxy-mode-userspace
+  sessionAffinity: ClientIP
+
+  # ## Customize the SessionAffinity configuration. The default value for sessionAffinityConfig.clientIP.timeoutSeconds is 10800 (3 hours)
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 7200
+
+rundeckConfig:
+  mysqlHost: mariadb
+
+  # Options variable
+  IMPORT_NMS_JOB: "true"
+  IMPORT_AUTOMATION_JOB: "true"
+  OVERRIDE_IMPORT_JOB: "false"
+  RUNDECK_OPTION_PROVIDER_URL: http://rundeck-option-provider:1111
+  HOST_IP: "10.98.0.144"
+  # Variable for Icinga
+  ICINGA2_REPORT_URL: http://icinga2-report:8888
+  ICINGA2_API_HOST: icinga2
+  ICINGA2_CONTAINER: "true"
+  # Base variable
+  RUNDECK_SERVER_FORWARDED: "true"
+  RUNDECK_SERVER_CONTEXT_PATH: /rundeck
+  RUNDECK_GRAILS_URL: http://rundeck:4440/rundeck
+  RUNDECK_SERVER_ADDRESS: "0.0.0.0"
+  # RUNDECK_DATABASE_URL: jdbc:h2:file:/home/rundeck/server/data/grailsdb;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=MONTH,HOUR,MINUTE,YEAR,SECONDS
+  RUNDECK_DATABASE_URL: jdbc:mysql://mariadb/rundeck?autoReconnect=true&useSSL=false
+  RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
+  RUNDECK_DATABASE_USERNAME: rundeck
+  RUNDECK_DATABASE_PASSWORD: juniper@123
+  RUNDECK_ADMIN_USER: thrukadmin
+  RUNDECK_ADMIN_PASSWORD: thrukadmin
+  RUNDECK_ADMIN_TOKEN: UkTttnpfh5MC9A3O859k43wPhhWbCsf8
+  ZONE_PREFIX: zone
+  DISCOVER_FOLDER: /etc/icinga2/zones.d
+  ALL_CONFIG_FOLDER: /etc/icinga2/zones.d/all_config

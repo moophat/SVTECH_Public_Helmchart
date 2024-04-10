@@ -1,0 +1,31 @@
+{{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
+
+{{- $namespace := .Release.Namespace }}
+{{- $enableHostPath := .Values.global.hostPathPV.enabled }}
+
+
+{{- range .Values.global.sharedPersistenceVolume }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .pvcName }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  # storageClassName: longhorn
+  {{ if $enableHostPath }}
+  storageClassName: {{ $namespace }}-{{ .storageClass }}
+  {{ else }}
+  storageClassName: {{ .storageClass }}
+  {{ end }}
+
+  accessModes:
+    - {{ .accessModes }}
+  resources:
+    requests:
+      storage: {{ .storageSize }}
+{{- end }}
+
+{{- end  }}
+

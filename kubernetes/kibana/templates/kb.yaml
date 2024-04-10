@@ -1,0 +1,64 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: {{.Values.global.elasticsearch.clusterName}}
+spec:
+  version: {{.Values.global.elasticsearch.version}}
+  count: 1
+  elasticsearchRef:
+    name: {{.Values.global.elasticsearch.clusterName}}
+  # https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-kibana-es.html
+  config:
+    server:
+      basePath: "/kibana"
+      rewriteBasePath: true
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  podTemplate:
+    spec:
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+      containers:
+      - name: kibana
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            path: "/kibana/login"
+            port: 5601
+        env:
+        - name: TZ
+          value: {{ include "common.timezone" ( dict "timezone" .Values.timezone "global" .Values.global) }}
+        # env:
+        #   - name: NODE_OPTIONS
+        #     value: "--max-old-space-size=2048"
+            # default is 1024, only need to increase this when installing some custom plugin or seeing the below error
+            # this config is for "FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory"
+            # https://discuss.elastic.co/t/check-kibana-max-old-space-size/245310
+        # resources:
+        #   requests:
+        #     memory: 2Gi #1Gi
+        #   limits:
+        #     memory: 4Gi #2Gi
+
+
+
+

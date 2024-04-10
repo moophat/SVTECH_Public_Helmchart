@@ -1,0 +1,64 @@
+# Icinga2 Report Chart
+
+## Tree level
+
+```
++--- .helmignore : define list ignore expression
++--- Chart.yaml : Chart information and dependencies (you can use as {{ .Chart }} variable on template files )
++--- files
+|   +--- auth
+|   +--- configuration
+|   |   +--- configuration.yml
+|   |   +--- graphql_configuration.yml
+|   |   +--- report_template
+|   |   |   +--- mobifone-template.yml
+|   +--- datasources.yml
+|   +--- icinga2-report.conf
++--- README.md
++--- templates : define your template files in this folder
+|   +--- configmap-auth.yaml
+|   +--- configmap-configuration.yaml
+|   +--- configmap-datasources.yaml
+|   +--- configmap-icinga2-report-conf.yaml
+|   +--- configmap-report-template.yaml
+|   +--- deployment.yaml
+|   +--- service.yaml
+|   +--- _helpers.tpl : define your custom template variable here, and you can create new file .tpl
++--- values.yaml : define {{ .Values }} variable to use in template files
+```
+
+
+## How to use
+
+- Clone this Container repo to /opt:
+    ```
+    cd /opt
+    git clone https://github.com/moophat/SVTECH_Projects_Container.git
+
+- Edit values.yaml at /opt/SVTECH_Projects_Container/kubernetes/nms_project/charts/icinga2-report
+    - You can change value at values.yaml file to apply your case:
+        - timezone
+        - image: registry, repository, tag
+        - replicaCount
+        - service: type, port, externalIPs
+        - datasources
+- Start chart alone:
+    ```
+    helm install icinga2-report /opt/SVTECH_Projects_Container/kubernetes/nms_project/charts/icinga2-report
+    ```
+
+- Verify:
+    - Check Pods
+        ```
+        kubectl get pods
+        ```
+    - Check service
+        ```
+        kubectl get svc
+        ```
+
+- Uninstallation:
+    ```
+    helm uninstall icinga2-report
+    ```
+

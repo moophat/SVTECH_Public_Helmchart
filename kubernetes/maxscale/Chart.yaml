@@ -7,9 +7,7 @@ engine: gotpl
 
 dependencies:
   - name: common
-    repository: file://../common
-    tags:
-      - bitnami-common
+    repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
     version: 1.x.x
 
 version: 1.0.0

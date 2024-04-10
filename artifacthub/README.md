@@ -1,1 +1,1 @@
-# test readme for svtech helm chart
+# SVTECH Public Helm Charts

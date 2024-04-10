@@ -5,13 +5,12 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: 1.4.3
-    created: "2024-04-10T14:35:56.839358882+07:00"
+    created: "2024-04-10T14:47:59.475049512+07:00"
     description: A Library Helm Chart for grouping common logic between bitnami charts.
       This chart is not deployable by itself.
-    digest: e2f5957fa606ffd9b2f48e58d8b59aff927e6e0e177e5c3c5c1d51abcde5b4d8
+    digest: 418d63793bef2b2093766b091a713b45fad55a9c53b8c933c6b5f1ac10a5bb5a
     name: common
-    type: library
     urls:
     - common-1.4.3.tgz
     version: 1.4.3
-generated: "2024-04-10T14:35:56.836695826+07:00"
+generated: "2024-04-10T14:47:59.472604782+07:00"

@@ -6,12 +6,10 @@ engine: gotpl
 
 dependencies:
   - name: common
-    repository: file://../common
-    tags:
-      - bitnami-common
+    repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
     version: 1.x.x
   - name: icinga2
-    repository: file://../icinga2
+    repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
     version: 1.0.0
 
 version: 1.0.0

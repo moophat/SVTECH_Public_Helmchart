@@ -1,0 +1,9 @@
+dependencies:
+- name: common
+  repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+  version: 1.4.3
+- name: icinga2
+  repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+  version: 1.0.0
+digest: sha256:736126d478e5edd9aaaed138b569311e74978de1e9fdd8c1778fde3e44f87dfb
+generated: "2024-04-10T15:19:59.266238057+07:00"

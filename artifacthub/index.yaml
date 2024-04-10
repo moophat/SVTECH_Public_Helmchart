@@ -5,7 +5,7 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: 1.4.3
-    created: "2024-04-10T14:47:59.475049512+07:00"
+    created: "2024-04-10T15:04:04.230102103+07:00"
     description: A Library Helm Chart for grouping common logic between bitnami charts.
       This chart is not deployable by itself.
     digest: 418d63793bef2b2093766b091a713b45fad55a9c53b8c933c6b5f1ac10a5bb5a
@@ -13,4 +13,20 @@ entries:
     urls:
     - common-1.4.3.tgz
     version: 1.4.3
-generated: "2024-04-10T14:47:59.472604782+07:00"
+  grafana:
+  - annotations:
+      category: Frontend
+    apiVersion: v2
+    appVersion: v1.0.0
+    created: "2024-04-10T15:04:04.234964013+07:00"
+    dependencies:
+    - name: common
+      repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+      version: 1.x.x
+    description: SVTECH Grafana
+    digest: 874451ce121b45b34296a99a78255a62d765ec6a46e792505700d0af7a4f641a
+    name: grafana
+    urls:
+    - grafana-1.0.0.tgz
+    version: 1.0.0
+generated: "2024-04-10T15:04:04.227365401+07:00"

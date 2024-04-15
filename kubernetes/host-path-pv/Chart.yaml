@@ -1,8 +1,8 @@
 apiVersion: v2
 annotations:
   category: Storage
-name: hostPathPV
-description: SVTECH Icinga2
+name: host-path-pv
+description: SVTECH HostPath Persistent Volume
 engine: gotpl
 
 dependencies:

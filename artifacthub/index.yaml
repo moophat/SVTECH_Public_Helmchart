@@ -5,7 +5,7 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: 1.4.3
-    created: "2024-04-15T10:55:49.967491478+07:00"
+    created: "2024-04-15T11:03:38.679012376+07:00"
     description: A Library Helm Chart for grouping common logic between bitnami charts.
       This chart is not deployable by itself.
     digest: 418d63793bef2b2093766b091a713b45fad55a9c53b8c933c6b5f1ac10a5bb5a
@@ -18,7 +18,7 @@ entries:
       category: elasticsearch
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:49.969212935+07:00"
+    created: "2024-04-15T11:03:38.681502048+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -34,7 +34,7 @@ entries:
       category: filebeat
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:49.97111509+07:00"
+    created: "2024-04-15T11:03:38.683790849+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -50,7 +50,7 @@ entries:
       category: Frontend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:49.973278349+07:00"
+    created: "2024-04-15T11:03:38.686266259+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -66,7 +66,7 @@ entries:
       category: Frontend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:49.975698037+07:00"
+    created: "2024-04-15T11:03:38.688611185+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -77,12 +77,28 @@ entries:
     urls:
     - grafana-1.0.0.tgz
     version: 1.0.0
+  host-path-pv:
+  - annotations:
+      category: Storage
+    apiVersion: v2
+    appVersion: v1.0.0
+    created: "2024-04-15T11:03:38.690390197+07:00"
+    dependencies:
+    - name: common
+      repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+      version: 1.x.x
+    description: SVTECH HostPath Persistent Volume
+    digest: 9ade0458d186b1df05573d6fbca95f9f08189fca8e058313765b333117a0ee40
+    name: host-path-pv
+    urls:
+    - host-path-pv-1.0.0.tgz
+    version: 1.0.0
   hostPathPV:
   - annotations:
       category: Storage
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:49.977490518+07:00"
+    created: "2024-04-15T11:03:38.692114312+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -98,7 +114,7 @@ entries:
       category: Backend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:49.98154486+07:00"
+    created: "2024-04-15T11:03:38.696585601+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -114,7 +130,7 @@ entries:
       category: backend
     apiVersion: v2
     appVersion: v1.7.0
-    created: "2024-04-15T10:55:49.985344023+07:00"
+    created: "2024-04-15T11:03:38.699387479+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -130,7 +146,7 @@ entries:
       category: icingaweb
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.013226027+07:00"
+    created: "2024-04-15T11:03:38.708531063+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -148,7 +164,7 @@ entries:
       category: Database
     apiVersion: v2
     appVersion: 2.0.6
-    created: "2024-04-15T10:55:50.021104578+07:00"
+    created: "2024-04-15T11:03:38.715499323+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -170,7 +186,7 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.021730111+07:00"
+    created: "2024-04-15T11:03:38.716105321+07:00"
     description: SVTECH ingress-nginx
     digest: 71c6eb70912589e973f57db6006ac2873f2e978d8280733f77f1febfe85ef90c
     name: ingress-nginx
@@ -182,7 +198,7 @@ entries:
       category: kibana
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.024034562+07:00"
+    created: "2024-04-15T11:03:38.718192954+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -198,7 +214,7 @@ entries:
       category: Database
     apiVersion: v2
     appVersion: 10.5.8
-    created: "2024-04-15T10:55:50.032450367+07:00"
+    created: "2024-04-15T11:03:38.724064311+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -215,7 +231,7 @@ entries:
       category: Maxscale
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.048077657+07:00"
+    created: "2024-04-15T11:03:38.742146417+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -231,7 +247,7 @@ entries:
       category: Frontend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.05386967+07:00"
+    created: "2024-04-15T11:03:38.747149105+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -247,7 +263,7 @@ entries:
       category: Backend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.056977097+07:00"
+    created: "2024-04-15T11:03:38.749906965+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -263,7 +279,7 @@ entries:
       category: Preparation
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.059519687+07:00"
+    created: "2024-04-15T11:03:38.752152507+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -279,7 +295,7 @@ entries:
       category: Proxy
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.069352281+07:00"
+    created: "2024-04-15T11:03:38.75917552+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -295,7 +311,7 @@ entries:
       category: Frontend
     apiVersion: v2
     appVersion: v1.1.0
-    created: "2024-04-15T10:55:50.073061506+07:00"
+    created: "2024-04-15T11:03:38.766242383+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -311,7 +327,7 @@ entries:
       category: API
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.076190239+07:00"
+    created: "2024-04-15T11:03:38.769408575+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -322,26 +338,26 @@ entries:
     urls:
     - rundeck-option-provider-1.0.0.tgz
     version: 1.0.0
-  sharedVolume:
+  shared-volume:
   - annotations:
       category: Template
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.079726203+07:00"
+    created: "2024-04-15T11:03:38.773013457+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: Shared Longhorn volume
-    digest: 9dca86a625a4854b84d02158025728e851c56086adbb3166b3d00c28def33092
-    name: sharedVolume
+    digest: 96cef59607926cbcf4fe1ccc06c3ff5c7370fb78be49188d54ce176236611b37
+    name: shared-volume
     urls:
-    - sharedVolume-1.0.0.tgz
+    - shared-volume-1.0.0.tgz
     version: 1.0.0
   snmp-manager:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-04-15T10:55:50.081105846+07:00"
+    created: "2024-04-15T11:03:38.775207503+07:00"
     description: SVTECH snmp-manager
     digest: 2396e9f68f8a0fda15e44e513d0bdc01a728e9ef2c81798022b1192488afe59a
     name: snmp-manager
@@ -354,7 +370,7 @@ entries:
       category: Frontend
     apiVersion: v2
     appVersion: v1.0.0
-    created: "2024-04-15T10:55:50.087783494+07:00"
+    created: "2024-04-15T11:03:38.779140879+07:00"
     dependencies:
     - name: common
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
@@ -365,4 +381,4 @@ entries:
     urls:
     - thruk-1.0.0.tgz
     version: 1.0.0
-generated: "2024-04-15T10:55:49.965688231+07:00"
+generated: "2024-04-15T11:03:38.676625187+07:00"

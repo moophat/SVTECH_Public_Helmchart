@@ -1,7 +1,7 @@
 apiVersion: v2
 annotations:
   category: Template
-name: sharedVolume
+name: shared-volume
 description: Shared Longhorn volume
 engine: gotpl
 

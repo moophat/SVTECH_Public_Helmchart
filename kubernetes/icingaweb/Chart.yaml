@@ -8,9 +8,6 @@ dependencies:
   - name: common
     repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
     version: 1.x.x
-  - name: icinga2
-    repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
-    version: 1.0.0
 
 version: 1.0.0
 appVersion: "v1.0.0"

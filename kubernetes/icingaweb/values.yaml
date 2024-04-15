@@ -1,3 +1,44 @@
+global:
+  redis:
+    enabled: true
+  icingadb:
+    enabled: true
+  database:
+    director:
+      enabled: true
+      database: directordb
+      username:
+      password:
+      # host: mariadb
+      # port: 3306
+    icingadb:
+      enabled: true
+      database: icingadb
+      username:
+      password:
+      # host: mariadb
+      # port: 3306
+    icingaweb2:
+      enabled: true
+      database: icingaweb2db
+      username:
+      password:
+      # host: mariadb
+      # port: 3306
+    snmptt:
+      enabled: false
+      database: snmptt
+      username:
+      password:
+      # host: mariadb
+      # port: 3306
+      # unknownTable: snmptt_unknown
+  api:
+    port: 5665
+    user: icingaAdmin
+    password: icingaAdmin
+
+
 timezone: Asia/Ho_Chi_Minh
 
 

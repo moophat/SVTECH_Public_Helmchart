@@ -1,3 +1,55 @@
+global:
+  elasticsearch:
+    enabled: false
+    clusterName: mbf
+    version: 8.9.1
+    k8sSvcSubfix: es-http # used in the boostrap index job
+    adminUser:
+      name: elastic
+      pass: juniper@123
+      role: superuser
+    index:
+      name:
+      - junos-log # ILM name, template name, rollover alias, index name
+      - offline-log
+      shard: 5
+      replica: 1
+
+    nodes:
+      - name: master
+        replicaCount: 3
+        role: ["data_hot", "master", "remote_cluster_client"]
+        storage:
+          name: local-path #local-path-ssd
+          size: 5G
+          mode: ReadWriteOnce
+        heapSize: 2001m
+        # nodeSelector:
+        #   kubernetes.io/hostname: mbf-syslog-01
+        resources:
+          limits:
+          #   cpu: 100m
+            memory: 4001Mi
+          requests: {}
+          #   cpu: 100m
+          #   memory: 128Mi
+      - name: data
+        replicaCount: 2
+        role: ["data_warm", "data_frozen", "data_cold", "data_content", "ingest", "ml", "transform", "remote_cluster_client"]
+        storage:
+          name: local-path #local-path-ssd
+          size: 5G
+          mode: ReadWriteOnce
+        heapSize: 2002m
+        # nodeSelector:
+        #   kubernetes.io/hostname: mbf-syslog-02
+        resources:
+          limits:
+          #   cpu: 100m
+            memory: 4002Mi
+          requests: {}
+          #   cpu: 100m
+          #   memory: 128Mi
 timezone: Asia/Ho_Chi_Minh
 
 

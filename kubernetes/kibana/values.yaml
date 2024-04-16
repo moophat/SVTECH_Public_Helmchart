@@ -1,5 +1,8 @@
 timezone: Asia/Ho_Chi_Minh
-
+global:
+  elasticsearch:
+    clusterName: mbf
+    version: 8.9.1
 
 nodeAffinityPreset:
   ## Node affinity type

@@ -1,7 +1,28 @@
 global:
+  ingressNamespace: ingress-nginx
+  ci: false
+  proxy:
+    enabled: true
+  thruk:
+    enabled: true
   sharedVolume:
     enabled: false
-
+  icingaweb:
+    enabled: true
+  gitlist:
+    enabled: true
+  grafana:
+    enabled: true
+  nagvis:
+    enabled: true
+  rundeck:
+    enabled: true
+  csv-view:
+    enabled: true
+  kibana:
+    enabled: false
+  elasticsearch:
+    clusterName: mbf
 timezone: Asia/Ho_Chi_Minh
 
 image:

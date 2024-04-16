@@ -67,6 +67,8 @@ spec:
           {{- end }}
         {{- end }}
       {{- end }}
+      imagePullSecrets:
+      - name: ghcr-pull-secret
       containers:
       # icingaweb container
       - name: icingaweb

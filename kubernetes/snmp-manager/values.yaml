@@ -3,27 +3,6 @@
 # Declare variables to be passed into your templates.
 global:
   database:
-    director:
-      enabled: true
-      database: directordb
-      username:
-      password:
-      # host: mariadb
-      # port: 3306
-    icingadb:
-      enabled: true
-      database: icingadb
-      username:
-      password:
-      # host: mariadb
-      # port: 3306
-    icingaweb2:
-      enabled: true
-      database: icingaweb2db
-      username:
-      password:
-      # host: mariadb
-      # port: 3306
     snmptt:
       enabled: false
       database: snmptt

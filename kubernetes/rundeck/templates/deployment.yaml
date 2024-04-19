@@ -190,7 +190,7 @@ spec:
 
                   function authen_testing(){
                     export token=$(cat /home/rundeck/.secret  |awk '{print $2}' | sed 's/,$//g')
-                    curl --silent -D - --show-error  -XGET --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" "http://localhost:4440/rundeck/api/45/projects?authtoken=${token}"
+                    curl --silent -D - --show-error  -XGET --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" --header "X-Rundeck-Auth-Token: ${token}" "http://localhost:4440/rundeck/api/45/projects"
                   }
 
                   if authen_testing 2>&1 1>/dev/null; then
@@ -219,10 +219,10 @@ spec:
                 - /bin/sh
                 - -c
                 - |
-                  # curl --silent -D - --request POST --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" "http://localhost:4440/rundeck/j_security_check" -d "j_username=user&j_password=user" |grep -e "error\|Error" && echo "Rundeck Server is not READY or Authentication is FAILED" && exit 1 || echo "Rundeck Server is READY and Authentication is SUCCEEDED" && exit 0
 
                   function authen_testing(){
-                    curl --silent -D - --show-error --request POST --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" "http://localhost:4440/rundeck/j_security_check" -d "j_username=user&j_password=user"
+                    export token=$(cat /home/rundeck/.secret  |awk '{print $2}' | sed 's/,$//g')
+                    curl --silent -D - --show-error  -XGET --header "Content-Type: application/x-www-form-urlencoded" --header "Cache-Control: no-cache" --header "X-Rundeck-Auth-Token: ${token}" "http://localhost:4440/rundeck/api/45/projects"
                   }
 
                   if authen_testing 2>&1 1>/dev/null; then

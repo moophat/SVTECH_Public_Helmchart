@@ -332,7 +332,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: SVTECH Rundeck
-    digest: c18d65c1d9f45ccb456554de90ac16c5b241a5f5f4355865a60c910dcde3241f
+    digest: 21cbac0c23fbd86dd93f97dbdd0a027bb85a7e5cf50d0b48922dd2546229289e
     name: rundeck
     urls:
     - rundeck-1.0.0.tgz

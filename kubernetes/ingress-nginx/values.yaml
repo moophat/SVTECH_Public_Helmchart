@@ -1,3 +1,7 @@
+global:
+  ingressNamespace: ingress-nginx
+  frontendVip: "" # Auto-assign with metalLB or set your own IP
+  backendVip: "" # Auto-assign with metalLB or set your own IP
 service:
   type: LoadBalancer
   # EXPOSE TCP PORTS FOR HTTP/HTTPS SERVICES

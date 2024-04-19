@@ -1,3 +1,7 @@
+global:
+  mariadb-galera:
+    enabled: true
+    replicaCount: 3
 init:
   image:
     repository: mysql

@@ -42,7 +42,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: elasticsearch
-    digest: 3dab1aa1d42af93f5f2f192437f85626da11a9654c0c621d09444a7fa5c76f9d
+    digest: 1e1499ba56418c5f4e68a0372f28fdcadd168d207cf2a0133813e36f03a7ea30
     name: elasticsearch
     urls:
     - elasticsearch-1.0.0.tgz
@@ -58,7 +58,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: filebeat
-    digest: 662279b0c82621e6fbc174332ef61e6af6589b49a266fa10fb5944153236c38b
+    digest: fcf16c773d5be4906ceee714a17fc6cdc74a31f80d6da404700f26ebe978211f
     name: filebeat
     urls:
     - filebeat-1.0.0.tgz
@@ -203,7 +203,7 @@ entries:
     appVersion: v1.0.0
     created: "2024-04-24T09:55:32.970024177+07:00"
     description: SVTECH ingress-nginx
-    digest: 71c6eb70912589e973f57db6006ac2873f2e978d8280733f77f1febfe85ef90c
+    digest: ccfe700307cd05988f6808ac354386deeb5deaabda61334fdf2fb661dfb24c9e
     name: ingress-nginx
     urls:
     - ingress-nginx-1.0.0.tgz
@@ -219,7 +219,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: kibana
-    digest: e7f51b55eeac39097d509c2327877a6ab55a5b34561035190396a7626a97e6e2
+    digest: ab8db1db6b59a574e3441fbe2f432dcb29ce4764473a63a7f926053b042f1699
     name: kibana
     urls:
     - kibana-1.0.0.tgz
@@ -252,7 +252,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: SVTECH Maxscale
-    digest: 11bde5c5247e383f8a87d0baa9a810da32d65bb725e27f521fed2c9e59cb21df
+    digest: 7fa6e0181a4c4da526a79bf1d0e54140c9dfe078b3867e22051a31f6b8af37f7
     name: maxscale
     urls:
     - maxscale-1.0.0.tgz
@@ -300,7 +300,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: SVTECH Preparation
-    digest: e8a6ca02d0760dc35cc75d9b305e1717d81e96303e73fdcc94f29ca9e2536798
+    digest: 62263c820739a6a5d3c4e6690cc27c42e8afc7cd182932859e6bfb939a5ff5ea
     name: preparation
     urls:
     - preparation-1.0.0.tgz
@@ -316,7 +316,7 @@ entries:
       repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
       version: 1.x.x
     description: SVTECH Proxy
-    digest: f0812c282ee749668c752e75e78ef7b3f21bf16e1d97061af575e64031d9c105
+    digest: d924cc60c80cdb1d296ac036be5e7adf17a84400994b0993bab08bd76815b21e
     name: proxy
     urls:
     - proxy-1.0.0.tgz
@@ -373,8 +373,12 @@ entries:
   - apiVersion: v2
     appVersion: 1.16.0
     created: "2024-04-24T09:55:33.074581501+07:00"
+    dependencies:
+    - name: common
+      repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+      version: 1.x.x
     description: SVTECH snmp-manager
-    digest: 2396e9f68f8a0fda15e44e513d0bdc01a728e9ef2c81798022b1192488afe59a
+    digest: ad1f9b294d16430c084ee38aa1895e9414aaf783a17369e94c69a0585d7a9701
     name: snmp-manager
     type: application
     urls:

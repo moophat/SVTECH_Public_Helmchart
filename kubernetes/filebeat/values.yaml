@@ -1,3 +1,11 @@
+global:
+  elasticsearch:
+    clusterName: mbf
+    version: 8.9.1
+  rundeck:
+    offlineLogFolder: /data/offlineLogFolder/
+  logstash:
+    loadBalancerIP: 172.168.1.2
 nodeAffinityPreset:
   ## Node affinity type
   ## Allowed values: soft, hard

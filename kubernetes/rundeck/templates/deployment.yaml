@@ -107,6 +107,19 @@ spec:
             - /bin/bash
             - -c
             - |
+                function check_empty_dir {
+                    dir="$1"
+                    default_dir="$2"
+                    status=`ls -A $dir | grep -v 'lost+found' | grep -v '^\.st*' | wc -l`
+                    if [[ "$status" != "0" ]]; then
+                        echo "$dir is not Empty. Take no action"
+                    else
+                        echo "$dir is Empty. Copy default data from $default_dir into $dir"
+                        rsync -avzhp  $default_dir/* $dir
+                        chown icinga:icinga $dir -R && chmod 775 $dir -R
+                    fi
+                }
+                check_empty_dir /home/rundeck/server/config /tmp/config
                 git config --global --add safe.directory "*"
                 chown rundeck:rundeck /etc/icinga2/zones.d -R
                 chmod 777 /etc/icinga2/zones.d -R

@@ -200,7 +200,7 @@ init:
 
 image:
   repository: svtechnmaa/svtech_rundeck
-  tag: "v1.2.1"
+  tag: "v1.2.2"
 
   pullPolicy: IfNotPresent
 

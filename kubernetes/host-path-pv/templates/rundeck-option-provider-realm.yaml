@@ -1,0 +1,25 @@
+---
+{{- $basePath := .Values.global.basePath }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.global.sharedPersistenceVolume }}
+{{- if eq .storageClass "rundeck-option-provider-realm-hostpath" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ $namespace }}-rundeck-option-provider-realm-pv"
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  storageClassName: {{ $namespace }}-rundeck-option-provider-realm-hostpath
+  capacity:
+    # storage: 1Gi
+    storage: {{ .storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: {{ $basePath }}/{{ $namespace }}/rundeck-server-config
+{{- end }}
+
+{{- end  }}

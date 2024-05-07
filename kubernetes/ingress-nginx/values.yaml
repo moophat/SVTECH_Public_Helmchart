@@ -1,7 +1,25 @@
+---
 global:
   ingressNamespace: ingress-nginx
   frontendVip: "" # Auto-assign with metalLB or set your own IP
   backendVip: "" # Auto-assign with metalLB or set your own IP
+
+ingress_nginx_host_network: false
+ingress_nginx_configmap: {}
+ingress_nginx_configmap_tcp_services: {}
+ingress_nginx_configmap_udp_services: {}
+ingress_nginx_probe_initial_delay_seconds: 10
+
+image:
+  repository: registry.k8s.io/ingress-nginx/controller
+  tag: v1.9.4
+  pullPolicy: IfNotPresent
+
+securityContext:
+  enabled: true
+
+replicaCount: 1
+
 service:
   type: LoadBalancer
   # EXPOSE TCP PORTS FOR HTTP/HTTPS SERVICES
@@ -16,13 +34,32 @@ service:
       protocol: TCP
   # EXPOSE UDP/TCP PORTS FOR UDP/TCP SERVICES
   portBackend:
-    # - name: logstash
-    #   port: 5515
-    #   targetPort: 5515
-    #   protocol: UDP
-    - name: snmp-manager
+    #- name: logstash
+    #  port: 5515
+    #  targetPort: 5515
+    #  protocol: UDP
+    - name: snmp-manager # use service name as name
       port: 162
       targetPort: 162
       protocol: UDP
   loadBalancerSourceRanges: []
   annotations: {}
+
+updateStrategy: RollingUpdate
+## Affinity for pod assignment
+## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+##
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/part-of: ingress-nginx
+      topologyKey: app.kubernetes.io/hostname
+
+## Node labels for pod assignment
+nodeSelector: {}
+
+## Tolerations for pod assignment
+tolerations: []

@@ -1,12 +1,11 @@
-# icingaweb apache configmap - get data from files/icingaweb2.conf
-{{- if .Files.Glob "files/icingaweb2.conf" }}
+# icingaweb apache configmap - get data from _icingaweb-apache.tpl
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: icingaweb-http
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
-    app.kubernetes.io/component: proxy
+    app.kubernetes.io/component: icingaweb
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -14,5 +13,5 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
-{{ (.Files.Glob "files/icingaweb2.conf").AsConfig | indent 2 }}
-{{- end }}
+  icingaweb2.conf: |-
+{{- include "icingaweb.icingaweb.apache" . | indent 4 }}

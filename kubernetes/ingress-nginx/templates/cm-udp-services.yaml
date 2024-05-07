@@ -1,0 +1,16 @@
+---
+{{- $ns := .Release.Namespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: udp-services
+  namespace: {{ $ns }}
+  labels:
+    app.kubernetes.io/name: {{ $ns }}-ingress-nginx
+    app.kubernetes.io/part-of: {{ $ns }}-ingress-nginx
+data:
+{{- range .Values.service.portBackend }}
+{{- if eq .protocol "UDP" }}
+  {{ .port }}: "{{ $ns }}/{{ .name }}:{{ .targetPort }}"
+{{- end }}
+{{- end }}

@@ -1,3 +1,22 @@
+global:
+  elasticsearch:
+    enabled: false
+    clusterName: mbf
+    version: 8.9.1
+    k8sSvcSubfix: es-http # used in the boostrap index job
+    adminUser:
+      name: elastic
+      pass: juniper@123
+      role: superuser
+    index:
+      name:
+      - junos-log # ILM name, template name, rollover alias, index name
+      - offline-log
+      shard: 5
+      replica: 1
+  logstash:
+    enabled: false
+    loadBalancerIP: 172.168.1.2
 timezone: Asia/Ho_Chi_Minh
 replicas: 2
 heapSize: 1001m

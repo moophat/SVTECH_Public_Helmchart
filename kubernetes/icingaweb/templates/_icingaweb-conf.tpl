@@ -57,9 +57,9 @@
 {{/* grafana module */}}
 {{- if .Values.modules.grafana.enabled }}
 - name: icingaweb.modules.grafana.config.grafana.host
-  value: {{ .Values.modules.grafana.host | quote }}
+  value: {{ printf "%s/grafana" .Values.global.frontendVip | quote }}
 - name: icingaweb.modules.grafana.config.grafana.protocol
-  value: "http"
+  value: "https"
 - name: icingaweb.modules.grafana.config.grafana.timerangeAll
   value: "1w/w"
 - name: icingaweb.modules.grafana.config.grafana.defaultdashboard

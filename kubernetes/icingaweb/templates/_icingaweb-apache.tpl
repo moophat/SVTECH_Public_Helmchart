@@ -1,3 +1,6 @@
+---
+{{/* Icingaweb apache config */}}
+{{- define "icingaweb.icingaweb.apache" }}
 # Apache config for icingaweb
 Alias /icingaweb "/usr/share/icingaweb2/public/"
 # Remove comments if you want to use PHP FPM and your Apache version is older than 2.4
@@ -58,3 +61,4 @@ Alias /icingaweb "/usr/share/icingaweb2/public/"
 #        </FilesMatch>
 #    </IfVersion>
 </Directory>
+{{- end }}

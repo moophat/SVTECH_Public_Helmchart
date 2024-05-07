@@ -136,8 +136,7 @@ spec:
                 if [ -d "/opt/SVTECH-Junos-Automation/Ansible-Development/collections" ]; then
                   echo "Collections already installed"
                 else
-                  ansible-galaxy collection install -r requirements.yaml
-                  ansible-galaxy role install -r requirements.yaml --force
+                  ansible-galaxy install -r requirements.yaml --force
                 fi
                 cd /home/rundeck
                 /tini -- /home/rundeck/docker-lib/entry.sh
@@ -154,7 +153,7 @@ spec:
             - name: RUNDECK_OPTION_PROVIDER_URL
               value: {{ .Values.rundeckConfig.RUNDECK_OPTION_PROVIDER_URL | quote }}
             - name: HOST_IP
-              value: {{ .Values.rundeckConfig.HOST_IP | quote }}
+              value: {{ .Values.global.frontendVip | quote }}
             - name: ICINGA2_REPORT_URL
               value: {{ .Values.rundeckConfig.ICINGA2_REPORT_URL | quote }}
             - name: ICINGA2_API_HOST

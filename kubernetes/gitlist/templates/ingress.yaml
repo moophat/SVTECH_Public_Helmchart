@@ -4,8 +4,9 @@ metadata:
   name: {{ .Chart.Name }}-ingress
   annotations:
     nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: {{ .Release.Namespace }}
   rules:
   - http:
       paths:

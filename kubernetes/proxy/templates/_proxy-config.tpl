@@ -4,11 +4,7 @@ server {
     listen 8080;
     {{- if and .Values.global.proxy.enabled .Values.global.thruk.enabled }}
     location /thruk {
-        {{- if .Values.global.ci }}
         proxy_pass http://thruk:80;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/thruk;
-        {{- end }}
         proxy_set_header   Host   $host;
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -17,11 +13,7 @@ server {
 
     {{- if and .Values.global.proxy.enabled .Values.global.icingaweb.enabled }}
     location /icingaweb/ {
-        {{- if .Values.global.ci }}
         proxy_pass http://icingaweb:8080;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/icingaweb;
-        {{- end }}
         proxy_set_header   Host   $host;
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -30,11 +22,7 @@ server {
 
     {{- if and .Values.global.proxy.enabled .Values.global.gitlist.enabled }}
     location /gitlist {
-        {{- if .Values.global.ci }}
         proxy_pass http://gitlist:80;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/gitlist;
-        {{- end }}
         proxy_set_header   Host   $host;
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -44,11 +32,7 @@ server {
     {{- if and .Values.global.proxy.enabled .Values.global.grafana.enabled }}
     location /grafana/send_request {
         rewrite  ^/grafana/send_request/(.*)  /$1 break;
-        {{- if .Values.global.ci }}
         proxy_pass http://icinga2-report:8888/;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/icinga2-report;
-        {{- end }}
         proxy_set_header X-Forwarded-Host $host:$server_port;
         proxy_set_header X-Forwarded-Server $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -56,11 +40,7 @@ server {
 
     location /grafana {
         rewrite  ^/grafana/(.*)  /$1 break;
-        {{- if .Values.global.ci }}
         proxy_pass http://grafana:3000;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/grafana;
-        {{- end }}
         proxy_set_header   Host   $host;
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -69,11 +49,7 @@ server {
 
     {{- if and .Values.global.proxy.enabled .Values.global.nagvis.enabled }}
     location /nagvis {
-        {{- if .Values.global.ci }}
         proxy_pass http://nagvis:80;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/nagvis;
-        {{- end }}
         proxy_set_header   Host   $host;
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -83,11 +59,7 @@ server {
     {{- if and .Values.global.proxy.enabled .Values.global.rundeck.enabled }}
     location /rundeck {
         client_max_body_size 2G;
-        {{- if .Values.global.ci }}
         proxy_pass http://rundeck:4440/rundeck;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/rundeck;
-        {{- end }}
         proxy_set_header   Host   $host;
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -100,21 +72,13 @@ server {
     }
     location /csv {
         rewrite /csv/(.*) /$1  break;
-        {{- if .Values.global.ci }}
         proxy_pass http://csv-view:8000;
-        {{- else }}
-        proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/csv;
-        {{- end }}
     }
     {{- end  }}
 
     {{- if and .Values.global.proxy.enabled .Values.global.kibana.enabled }}
     location /kibana {
-            {{- if .Values.global.ci }}
             proxy_pass http://{{- printf "%s-kb-http" .Values.global.elasticsearch.clusterName -}}:5601/kibana;
-            {{- else }}
-            proxy_pass http://ingress-frontend.{{ .Values.global.ingressNamespace }}.svc.cluster.local/kibana;
-            {{- end }}
             proxy_set_header Host $http_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

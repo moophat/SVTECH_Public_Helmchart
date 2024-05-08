@@ -56,7 +56,7 @@ spec:
             mkdir -p /data/var/lib/icingaweb2
             mkdir -p /data/etc/icingaweb2/modules/grafana
             chown -R www-data:www-data /data
-            until nc -zvw5 nms-icinga2-master-0.icinga2-headless 5665; do echo "Waiting for icinga master..."; sleep 2; done
+            until nc -zvw5 {{ .Release.Name }}-icinga2-master-0.icinga2-headless 5665; do echo "Waiting for icinga master..."; sleep 2; done
         {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
         volumeMounts:
           {{- range .Values.global.sharedPersistenceVolume }}
@@ -97,17 +97,13 @@ spec:
       # Volume and volumeMount
         volumeMounts:
           # icingaweb http config
-          {{- if .Files.Glob "files/icingaweb2.conf" }}
           - name: icingaweb-http
             mountPath: /etc/apache2/conf-enabled/icingaweb2.conf
             subPath: icingaweb2.conf
-          {{- end }}
           # icingaweb graphs
-          {{- if .Files.Glob "files/graphs.ini" }}
           - name: icingaweb-graphs
             mountPath: /data/etc/icingaweb2/modules/grafana/graphs.ini
             subPath: graphs.ini
-          {{- end }}
           # shareVolume
           {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
           {{- range .Values.global.sharedPersistenceVolume }}
@@ -143,17 +139,13 @@ spec:
       {{- end }}
       volumes:
         # icingaweb http 
-        {{- if .Files.Glob "files/icingaweb2.conf" }}
         - name: icingaweb-http
           configMap:
             name: icingaweb-http
-        {{- end }}
         # icingaweb graphs
-        {{- if .Files.Glob "files/graphs.ini" }}
         - name: icingaweb-graphs
           configMap:
             name: icingaweb-graphs
-        {{- end }}
         # shareVome
         {{- if and .Values.global.sharedPersistenceVolume .Values.global.sharedVolume.enabled }}
         {{- range .Values.global.sharedPersistenceVolume }}

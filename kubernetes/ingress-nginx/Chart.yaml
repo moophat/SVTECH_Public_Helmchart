@@ -4,5 +4,10 @@ annotations:
 name: ingress-nginx
 description: SVTECH ingress-nginx
 
+dependencies:
+  - name: common
+    repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
+    version: 1.x.x
+
 version: 1.0.0
 appVersion: "v1.0.0"

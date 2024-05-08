@@ -82,12 +82,15 @@ a:active {
 <body>
 
 <h1>List Dashboards</h1>
-
+{{- $url := printf "https://%s" .Values.global.frontendVip }}
+{{- if .Values.global.ci }}
+{{- $url := "" }}
+{{- end }}
 <div>
     <ul>
     {{- if .Values.global.icingaweb.enabled }}
     <li>
-        <a href="/icingaweb/">
+        <a href="{{ $url }}/icingaweb/">
         <img width="100" height="80" src="./images/checklist-icon-checklist-icon.png" />
         <h3>WebUI</h3>
         <p>Monitoring Web Interface</p>
@@ -97,7 +100,7 @@ a:active {
 
     {{- if .Values.global.thruk.enabled }}
     <li>
-        <a href="/thruk">
+        <a href="{{ $url }}/thruk/cgi-bin/main.cgi">
         <img width="100" height="80" src="./images/checklist-icon-checklist-icon.png" />
         <h3>Thruk</h3>
         <p>Monitoring Web Interface</p>
@@ -107,7 +110,7 @@ a:active {
 
     {{- if .Values.global.grafana.enabled }}
     <li>
-        <a href="/grafana">
+        <a href="{{ $url }}/grafana">
         <img width="100" height="80" src="./images/dashboard-svg-icon.png" />
         <h3>Grafana</h3>
         <p>Graph, Metric Monitoring and Analytics</p>
@@ -117,7 +120,7 @@ a:active {
     
     {{- if .Values.global.nagvis.enabled }}
     <li>
-        <a href="/nagvis">
+        <a href="{{ $url }}/nagvis/">
         <img width="100" height="80" src="./images/topology-icon.png" />
         <h3>Nagvis</h3>
         <p>Topology</p>
@@ -127,7 +130,7 @@ a:active {
 
     {{- if .Values.global.rundeck.enabled }}
     <li>
-        <a href="/rundeck">
+        <a href="{{ $url }}/rundeck">
         <img width="100" height="80" src="./images/automation-icon.png" />
         <h3>Rundeck</h3>
         <p>Discovery, Scheduler and Automation Tasks</p>
@@ -137,7 +140,7 @@ a:active {
     
     {{- if .Values.global.gitlist.enabled }}
     <li>
-        <a href="/gitlist">
+        <a href="{{ $url }}/gitlist/">
         <img width="100" height="80" src="./images/backup-icon.png" />
         <h3>Gitlist</h3>
         <p>Backup Configuration Files</p>
@@ -147,7 +150,7 @@ a:active {
 
     {{- if .Values.global.kibana.enabled }}
     <li>
-        <a href="/kibana">
+        <a href="{{ $url }}/kibana">
         <img width="100" height="80" src="./images/logging-icon.png" />
         <h3>Kibana</h3>
         <p>Logging, Discover Data</p>

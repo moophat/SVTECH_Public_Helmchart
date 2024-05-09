@@ -84,7 +84,7 @@ a:active {
 <h1>List Dashboards</h1>
 {{- $url := printf "https://%s" .Values.global.frontendVip }}
 {{- if .Values.global.ci }}
-{{- $url := "" }}
+{{- $url = "" }}
 {{- end }}
 <div>
     <ul>

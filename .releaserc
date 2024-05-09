@@ -1,0 +1,9 @@
+{
+    "branches": ["main"],
+    "repositoryUrl": "https://github.com/moophat/SVTECH_Public_Helmchart",
+    "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        "@semantic-release/github"
+    ]
+}

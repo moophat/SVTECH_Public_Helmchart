@@ -1,7 +1,5 @@
 # Debuger Chart
 
-test
-
 ## Tree level
 
 ```

@@ -15,7 +15,7 @@ metadata:
 spec:
   serviceName: {{ .Chart.Name }}-headless
   podManagementPolicy: {{ .Values.influxdb.podManagementPolicy }}
-  replicas: {{ .Values.influxdb.replicaCount }}
+  replicas: {{ include "common.replicas" ( dict "replicaCount" .Values.influxdb.replicaCount "global" .Values.global ) }}
   updateStrategy:
     type: {{ .Values.influxdb.updateStrategy }}
     {{- if (eq "OnDelete" .Values.influxdb.updateStrategy) }}

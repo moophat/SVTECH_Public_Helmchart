@@ -11,7 +11,7 @@ metadata:
   name: {{ include "common.names.fullname" . }}-satellite
 spec:
   # podManagementPolicy: OrderedReady
-  replicas: {{ .Values.satellite.replicaCount }}
+  replicas: {{ include "common.replicas" ( dict "replicaCount" .Values.satellite.replicaCount "global" .Values.global ) }}
   podManagementPolicy: {{ .Values.master.podManagementPolicy }}
   revisionHistoryLimit: 10
   selector:

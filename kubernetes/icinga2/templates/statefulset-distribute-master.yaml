@@ -15,7 +15,7 @@ metadata:
 spec:
   serviceName: {{ .Chart.Name }}-headless
   podManagementPolicy: {{ .Values.master.podManagementPolicy }}
-  replicas: {{ .Values.master.replicaCount }}
+  replicas: {{ include "common.replicas" ( dict "replicaCount" .Values.master.replicaCount "global" .Values.global ) }}
   revisionHistoryLimit: 10
   updateStrategy:
     type: {{ .Values.master.updateStrategy }}

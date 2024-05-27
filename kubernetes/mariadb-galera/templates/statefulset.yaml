@@ -5,7 +5,7 @@ metadata:
   labels: {{- include "common.labels.standard" . | nindent 4 }}
 spec:
   podManagementPolicy: {{ .Values.podManagementPolicy }}
-  replicas: {{ index (index .Values.global "mariadb-galera") "replicaCount" }}
+  replicas: {{ include "common.replicas" ( dict "replicaCount" ( index (index .Values.global "mariadb-galera") "replicaCount" ) "global" .Values.global ) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
   serviceName: {{ template "common.names.fullname" . }}-headless

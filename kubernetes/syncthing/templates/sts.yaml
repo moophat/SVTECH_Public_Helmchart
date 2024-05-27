@@ -4,7 +4,7 @@ metadata:
   labels: {{- include "common.labels.standard" . | nindent 4 }}
   name: {{ include "common.names.fullname" . }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ include "common.replicas" ( dict "replicaCount" .Values.replicaCount "global" .Values.global ) }}
   serviceName: "syncthing-headless"
   selector:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}

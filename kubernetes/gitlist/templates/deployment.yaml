@@ -21,7 +21,7 @@ spec:
     matchLabels:
       {{- include "common.labels.matchLabels" . | nindent 6 }}
       app.kubernetes.io/component: gitlist
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ include "common.replicas" ( dict "replicaCount" .Values.replicaCount "global" .Values.global ) }}
   template:
     metadata:
       labels:

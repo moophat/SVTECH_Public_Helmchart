@@ -16,7 +16,7 @@ spec:
   {{- end }}
   {{- if .Values.global.externalIP }}
   externalIPs:
-    - {{- .Values.global.externalIP }}
+    - {{ .Values.global.externalIP }}
   {{- end }}
   {{- if and (eq .Values.service.type "ClusterIP") .Values.service.clusterIP }}
   clusterIP: {{ .Values.service.clusterIP }}

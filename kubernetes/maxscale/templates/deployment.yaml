@@ -111,6 +111,6 @@ spec:
       targetPort: {{ .Values.maxscaleConfig.port }}
   {{- if .Values.global.externalIP }}
   externalIPs:
-  - {{- .Values.global.externalIP }}
+  - {{ .Values.global.externalIP }}
   {{- end }}
   type: ClusterIP

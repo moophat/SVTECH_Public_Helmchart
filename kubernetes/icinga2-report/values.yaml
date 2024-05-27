@@ -1,3 +1,6 @@
+global:
+  externalIP: "" # externalIP for CICD
+
 
 timezone: Asia/Ho_Chi_Minh
 

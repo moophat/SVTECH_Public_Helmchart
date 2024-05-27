@@ -1,5 +1,6 @@
 global:
   ingressNamespace: ingress-nginx
+  externalIP: "" # externalIP for CICD
   ci: false
   proxy:
     enabled: true

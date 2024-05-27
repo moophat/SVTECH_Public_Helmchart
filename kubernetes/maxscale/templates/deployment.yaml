@@ -109,7 +109,8 @@ spec:
     - protocol: TCP
       port: 3306
       targetPort: {{ .Values.maxscaleConfig.port }}
-  {{- if .Values.service.externalIPs }}
-  externalIPs: {{- toYaml .Values.service.externalIPs | nindent 4 }}
+  {{- if .Values.global.externalIP }}
+  externalIPs:
+  - {{- .Values.global.externalIP }}
   {{- end }}
   type: ClusterIP

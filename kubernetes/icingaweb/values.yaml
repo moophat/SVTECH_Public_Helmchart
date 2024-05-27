@@ -1,4 +1,5 @@
 global:
+  externalIP: "" # externalIP for CICD
   sharedVolume:
     enabled: true
   redis:
@@ -376,8 +377,6 @@ service:
   # loadBalancerIP:
   # loadBalancerSourceRanges:
   # - 10.10.10.0/24
-
-  # externalIPs: ["10.98.0.143"]
 
   ## Set the Cluster IP to use
   ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address

@@ -1,4 +1,5 @@
 global:
+  externalIP: "" # externalIP for CICD
   sharedVolume:
     enabled: true
   redis:

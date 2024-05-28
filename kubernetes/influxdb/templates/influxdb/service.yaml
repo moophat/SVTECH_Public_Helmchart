@@ -28,8 +28,9 @@ spec:
 {{ toYaml . | nindent 4 }}
   {{- end }}
   {{- end }}
-  {{- if .Values.influxdb.service.externalIPs }}
-  externalIPs: {{- toYaml .Values.influxdb.service.externalIPs | nindent 4 }}
+  {{- if .Values.global.externalIP }}
+  externalIPs:
+    - {{ .Values.global.externalIP }}
   {{- end }}
 
   {{- if and (eq .Values.influxdb.service.type "ClusterIP") .Values.influxdb.service.clusterIP }}

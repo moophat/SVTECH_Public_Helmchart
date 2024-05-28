@@ -54,6 +54,9 @@ kubeVersion:
 ## ref: https://hub.docker.com/r/bitnami/influxdb/tags/
 ##
 
+global:
+  externalIP: "" # externalIP for CI/CD
+
 timezone: Asia/Ho_Chi_Minh
 
 image:

@@ -35,7 +35,7 @@ spec:
                       git init
                       git remote add origin https://${GH_USERNAME}:${GH_TOKEN}@github.com/moophat/${name}.git
 
-                      if [[ "$tag" == "latest" ]]; then
+                      if [[ "$tag" == "latest" ]] || [[ "$tag" == "HEAD" ]]; then
                           cd /opt/$name 
                           # Get the commit ID of latest tag
                           # commit_id=$(git rev-list --tags --max-count=1 --remotes)

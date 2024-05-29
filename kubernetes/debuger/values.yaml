@@ -1,6 +1,7 @@
 global:
   sharedVolume:
     enabled: false
+  externalIP: "" # externalIP for CICD
 # test
 timezone: Asia/Ho_Chi_Minh
 

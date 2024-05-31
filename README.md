@@ -4,7 +4,7 @@ This repo contains all subchart (grafana, icinga2, rundeck, etc) those are used 
 This repo is also be linked to artifacthub.io so that all subchart are available in public.
 
 ---
-### Repo structures
+### Repo structure
 
 [kubernetes](/kubernetes/README.md) - List of all subchart helm
 

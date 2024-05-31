@@ -1,1 +1,1 @@
-# SVTECH Public Helm Charts
+## Subchart's helm package version

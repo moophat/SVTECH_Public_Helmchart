@@ -1,0 +1,146 @@
+server default {
+	listen {
+		type = auth
+		ipaddr = *
+		port = $ENV{FREERADIUS_SITES_DEFAULT_AUTH_PORT}
+		limit {
+			lifetime = 0
+			idle_timeout = 30
+		}
+	}
+
+	listen {
+		ipaddr = *
+		port = $ENV{FREERADIUS_SITES_DEFAULT_ACCT_PORT}
+		type = acct
+		limit {
+		}
+	}
+
+	listen {
+		type = auth
+		ipv6addr = ::	# any.  ::1 == localhost
+		port = $ENV{FREERADIUS_SITES_DEFAULT_AUTH_PORT}
+		limit {
+			max_connections = 16
+			lifetime = 0
+			idle_timeout = 30
+		}
+	}
+
+	listen {
+		ipv6addr = ::
+		port = $ENV{FREERADIUS_SITES_DEFAULT_ACCT_PORT}
+		type = acct
+	#	interface = eth0
+	#	clients = per_socket_clients
+		limit {
+			max_pps = 0
+			idle_timeout = 0
+			lifetime = 0
+			max_connections = 0
+		}
+	}
+	authorize {
+		filter_username
+		preprocess
+		chap
+		mschap
+		digest
+		suffix
+		eap {
+			ok = return
+	#		updated = return
+		}
+		files
+		sql
+		-ldap
+	#	daily
+		expiration
+		logintime
+		pap
+		Autz-Type New-TLS-Connection {
+			ok
+		}
+	}
+	authenticate {
+		Auth-Type PAP {
+			pap
+		}
+		Auth-Type CHAP {
+			chap
+		}
+		Auth-Type MS-CHAP {
+			mschap
+		}
+		mschap
+		digest
+		eap
+	}
+	preacct {
+		preprocess
+		acct_unique
+		suffix
+		files
+	}
+	accounting {
+	#	cui
+		detail
+		log_accounting
+	#	daily
+		unix
+	#	radutmp
+	#	sradutmp
+	#	sqlippool
+		sql
+	#	if (noop) {
+	#		ok
+	#	}
+		exec
+		attr_filter.accounting_response
+	}
+	session {
+		sql
+	}
+	post-auth {
+		if (session-state:User-Name && reply:User-Name && request:User-Name && (reply:User-Name == request:User-Name)) {
+			update reply {
+				&User-Name !* ANY
+			}
+		}
+		update {
+			&reply: += &session-state:
+		}
+	#	sqlippool
+	#	cui
+	#	sql_session_start
+	#	reply_log
+		sql
+		log_authentication
+	#	ldap
+		exec
+	#	wimax
+		Post-Auth-Type REJECT {
+			sql
+			log_authentication
+			attr_filter.access_reject
+			eap
+			#  Remove reply message if the response contains an EAP-Message
+			remove_reply_message_if_eap
+		}
+		Post-Auth-Type Challenge {
+		}
+		Post-Auth-Type Client-Lost {
+		}
+		if (EAP-Key-Name && &reply:EAP-Session-Id) {
+			update reply {
+				&EAP-Key-Name := &reply:EAP-Session-Id
+			}
+		}
+	}
+	pre-proxy {
+	}
+	post-proxy {
+		eap
+	}
+}

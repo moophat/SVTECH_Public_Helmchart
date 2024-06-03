@@ -1,0 +1,468 @@
+sql {
+	dialect = $ENV{FREERADIUS_MODS_SQL_DIALECT}
+	driver = "rlm_sql_${dialect}"
+	mysql {
+		tls {
+			tls_required = no
+			tls_check_cert = no
+			tls_check_cert_cn = no
+		}
+		warnings = auto
+	}
+
+	server = $ENV{FREERADIUS_MODS_SQL_SERVER}
+	port = $ENV{FREERADIUS_MODS_SQL_PORT}
+	login = $ENV{FREERADIUS_MODS_SQL_LOGIN}
+	password = $ENV{FREERADIUS_MODS_SQL_PASSWORD}
+	radius_db = $ENV{FREERADIUS_MODS_SQL_DB}
+	acct_table1 = $ENV{FREERADIUS_MODS_SQL_TABLE_ACCT1}
+	acct_table2 = $ENV{FREERADIUS_MODS_SQL_TABLE_ACCT2}
+	postauth_table = $ENV{FREERADIUS_MODS_SQL_TABLE_POSTAUTH}
+	authcheck_table = $ENV{FREERADIUS_MODS_SQL_TABLE_AUTHCHECK}
+	groupcheck_table = $ENV{FREERADIUS_MODS_SQL_TABLE_GROUPCHECK}
+	authreply_table = $ENV{FREERADIUS_MODS_SQL_TABLE_AUTHREPLY}
+	groupreply_table = $ENV{FREERADIUS_MODS_SQL_TABLE_GROUPREPLY}
+	usergroup_table = $ENV{FREERADIUS_MODS_SQL_TABLE_USERGROUP}
+	delete_stale_sessions = yes
+	num_sql_socks = 64
+
+	pool {
+		start = ${thread[pool].start_servers}
+		min = ${thread[pool].min_spare_servers}
+		max = ${thread[pool].max_servers}
+		spare = ${thread[pool].max_spare_servers}
+		uses = 0
+		retry_delay = 30
+		lifetime = 180
+		idle_timeout = 60
+	}
+	read_clients = yes
+	client_table = $ENV{FREERADIUS_MODS_SQL_TABLE_CLIENT}
+	group_attribute = "SQL-Group"
+	sql_user_name = "%{User-Name}"
+	event_timestamp_epoch = "%{%{integer:Event-Timestamp}:-%l}"
+	event_timestamp = "FROM_UNIXTIME(${event_timestamp_epoch})"
+	class {
+			column_name =   # ", class"
+			packet_xlat =   # ", '%{Class}'"
+			reply_xlat =    # ", '%{reply:Class}'"
+	}
+	client_query = "\
+        SELECT id, nasname, shortname, type, secret, server \
+        FROM ${client_table}"
+	authorize_check_query = "\
+        SELECT id, username, attribute, value, op \
+        FROM ${authcheck_table} \
+        WHERE username = '%{SQL-User-Name}' \
+        ORDER BY id"
+	authorize_reply_query = "\
+        SELECT id, username, attribute, value, op \
+        FROM ${authreply_table} \
+        WHERE username = '%{SQL-User-Name}' \
+        ORDER BY id"
+	group_membership_query = "\
+        SELECT groupname \
+        FROM ${usergroup_table} \
+        WHERE username = '%{SQL-User-Name}' \
+        ORDER BY priority"
+
+	authorize_group_check_query = "\
+        SELECT id, groupname, attribute, \
+        Value, op \
+        FROM ${groupcheck_table} \
+        WHERE groupname = '%{${group_attribute}}' \
+        ORDER BY id"
+
+	authorize_group_reply_query = "\
+        SELECT id, groupname, attribute, \
+        value, op \
+        FROM ${groupreply_table} \
+        WHERE groupname = '%{${group_attribute}}' \
+        ORDER BY id"
+
+	accounting {
+		reference = "%{tolower:type.%{%{Acct-Status-Type}:-%{Request-Processing-Stage}}.query}"
+		column_list = "\
+				acctsessionid,          acctuniqueid,           username, \
+				realm,                  nasipaddress,           nasportid, \
+				nasporttype,            acctstarttime,          acctupdatetime, \
+				acctstoptime,           acctsessiontime,        acctauthentic, \
+				connectinfo_start,      connectinfo_stop,       acctinputoctets, \
+				acctoutputoctets,       calledstationid,        callingstationid, \
+				acctterminatecause,     servicetype,            framedprotocol, \
+				framedipaddress,        framedipv6address,      framedipv6prefix, \
+				framedinterfaceid,      delegatedipv6prefix     ${..class.column_name}"
+		type {
+				accounting-on {
+						#
+						#  Bulk terminate all sessions associated with a given NAS
+						#
+						query = "\
+								UPDATE ${....acct_table1} \
+								SET \
+										acctstoptime = ${....event_timestamp}, \
+										acctsessiontime = '${....event_timestamp_epoch}' \
+												- UNIX_TIMESTAMP(acctstarttime), \
+										acctterminatecause = '%{%{Acct-Terminate-Cause}:-NAS-Reboot}' \
+								WHERE acctstoptime IS NULL \
+								AND nasipaddress   = '%{NAS-IP-Address}' \
+								AND acctstarttime <= ${....event_timestamp}"
+				}
+
+				accounting-off {
+						query = "${..accounting-on.query}"
+				}
+
+				#
+				#  Implement the "sql_session_start" policy.
+				#  See raddb/policy.d/accounting for more details.
+				#
+				#  You also need to fix the other queries as
+				#  documented below.  Look for "sql_session_start".
+				#
+				post-auth {
+						query = "\
+						INSERT INTO ${....acct_table1} \
+								(${...column_list}) \
+						VALUES(\
+								'%{Acct-Session-Id}', \
+								'%{Acct-Unique-Session-Id}', \
+								'%{SQL-User-Name}', \
+								'%{Realm}', \
+								'%{%{NAS-IPv6-Address}:-%{NAS-IP-Address}}', \
+								NULLIF('%{%{NAS-Port-ID}:-%{NAS-Port}}', ''), \
+								'%{NAS-Port-Type}', \
+								${....event_timestamp}, \
+								NULL, \
+								NULL, \
+								0, \
+								'', \
+								'%{Connect-Info}', \
+								NULL, \
+								0, \
+								0, \
+								'%{Called-Station-Id}', \
+								'%{Calling-Station-Id}', \
+								'', \
+								'%{Service-Type}', \
+								NULL, \
+								'', \
+								'', \
+								'', \
+								'', \
+								'' \
+								${....class.packet_xlat})"
+
+						query = "\
+								UPDATE ${....acct_table1} SET \
+										AcctStartTime = ${....event_timestamp}, \
+										AcctUpdateTime = ${....event_timestamp}, \
+										ConnectInfo_start = '%{Connect-Info}', \
+										AcctSessionId = '%{Acct-Session-Id}' \
+								WHERE UserName = '%{SQL-User-Name}' \
+										AND NASIPAddress = '%{%{NAS-IPv6-Address}:-%{NAS-IP-Address}}' \
+										AND NASPortId = '%{%{NAS-Port-ID}:-%{NAS-Port}}' \
+										AND NASPortType = '%{NAS-Port-Type}' \
+										AND AcctStopTime IS NULL"
+				}
+
+				start {
+						#
+						#  Insert a new record into the sessions table
+						#
+						query = "\
+								INSERT INTO ${....acct_table1} \
+										(${...column_list}) \
+								VALUES \
+										('%{Acct-Session-Id}', \
+										'%{Acct-Unique-Session-Id}', \
+										'%{SQL-User-Name}', \
+										'%{Realm}', \
+										'%{NAS-IP-Address}', \
+										'%{%{NAS-Port-ID}:-%{NAS-Port}}', \
+										'%{NAS-Port-Type}', \
+										${....event_timestamp}, \
+										${....event_timestamp}, \
+										NULL, \
+										'0', \
+										'%{Acct-Authentic}', \
+										'%{Connect-Info}', \
+										'', \
+										'0', \
+										'0', \
+										'%{Called-Station-Id}', \
+										'%{Calling-Station-Id}', \
+										'', \
+										'%{Service-Type}', \
+										'%{Framed-Protocol}', \
+										'%{Framed-IP-Address}', \
+										'%{Framed-IPv6-Address}', \
+										'%{Framed-IPv6-Prefix}', \
+										'%{Framed-Interface-Id}', \
+										'%{Delegated-IPv6-Prefix}' \
+										${....class.packet_xlat})"
+
+						#
+						#  When using "sql_session_start", you should comment out
+						#  the previous query, and enable this one.
+						#
+						#  Just change the previous query to "-query",
+						#  and this one to "query".  The previous one
+						#  will be ignored, and this one will be
+						#  enabled.
+						#
+						-query = "\
+								UPDATE ${....acct_table1} \
+								SET \
+										AcctSessionId = '%{Acct-Session-Id}', \
+										AcctUniqueId = '%{Acct-Unique-Session-Id}', \
+										AcctAuthentic = '%{Acct-Authentic}', \
+										ConnectInfo_start = '%{Connect-Info}', \
+										ServiceType = '%{Service-Type}', \
+										FramedProtocol = '%{Framed-Protocol}', \
+										framedipaddress = '%{Framed-IP-Address}', \
+										framedipv6address = '%{Framed-IPv6-Address}', \
+										framedipv6prefix = '%{Framed-IPv6-Prefix}', \
+										framedinterfaceid = '%{Framed-Interface-Id}', \
+										delegatedipv6prefix = '%{Delegated-IPv6-Prefix}', \
+										AcctStartTime = ${....event_timestamp}, \
+										AcctUpdateTime = ${....event_timestamp} \
+								WHERE UserName = '%{SQL-User-Name}' \
+										AND NASIPAddress = '%{%{NAS-IPv6-Address}:-%{NAS-IP-Address}}' \
+										AND NASPortId = '%{%{NAS-Port-ID}:-%{NAS-Port}}' \
+										AND NASPortType = '%{NAS-Port-Type}' \
+										AND AcctStopTime IS NULL"
+
+						#
+						#  Key constraints prevented us from inserting a new session,
+						#  use the alternate query to update an existing session.
+						#
+						query = "\
+								UPDATE ${....acct_table1} SET \
+										acctstarttime   = ${....event_timestamp}, \
+										acctupdatetime  = ${....event_timestamp}, \
+										connectinfo_start = '%{Connect-Info}' \
+								WHERE AcctUniqueId = '%{Acct-Unique-Session-Id}'"
+
+				}
+
+				interim-update {
+						#
+						#  Update an existing session and calculate the interval
+						#  between the last data we received for the session and this
+						#  update. This can be used to find stale sessions.
+						#
+						query = "\
+								UPDATE ${....acct_table1} \
+								SET \
+										acctupdatetime  = (@acctupdatetime_old:=acctupdatetime), \
+										acctupdatetime  = ${....event_timestamp}, \
+										acctinterval    = ${....event_timestamp_epoch} - \
+												UNIX_TIMESTAMP(@acctupdatetime_old), \
+										framedipaddress = '%{Framed-IP-Address}', \
+										framedipv6address = '%{Framed-IPv6-Address}', \
+										framedipv6prefix = '%{Framed-IPv6-Prefix}', \
+										framedinterfaceid = '%{Framed-Interface-Id}', \
+										delegatedipv6prefix = '%{Delegated-IPv6-Prefix}', \
+										acctsessiontime = %{%{Acct-Session-Time}:-NULL}, \
+										acctinputoctets = '%{%{Acct-Input-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Input-Octets}:-0}', \
+										acctoutputoctets = '%{%{Acct-Output-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Output-Octets}:-0}' \
+								WHERE AcctUniqueId = '%{Acct-Unique-Session-Id}'"
+
+						#
+						#  The update condition matched no existing sessions. Use
+						#  the values provided in the update to create a new session.
+						#
+						query = "\
+								INSERT INTO ${....acct_table1} \
+										(${...column_list}) \
+								VALUES \
+										('%{Acct-Session-Id}', \
+										'%{Acct-Unique-Session-Id}', \
+										'%{SQL-User-Name}', \
+										'%{Realm}', \
+										'%{NAS-IP-Address}', \
+										'%{%{NAS-Port-ID}:-%{NAS-Port}}', \
+										'%{NAS-Port-Type}', \
+										FROM_UNIXTIME(${....event_timestamp_epoch} - %{%{Acct-Session-Time}:-0}), \
+										${....event_timestamp}, \
+										NULL, \
+										%{%{Acct-Session-Time}:-NULL}, \
+										'%{Acct-Authentic}', \
+										'%{Connect-Info}', \
+										'', \
+										'%{%{Acct-Input-Gigawords}:-0}' << 32 | '%{%{Acct-Input-Octets}:-0}', \
+										'%{%{Acct-Output-Gigawords}:-0}' << 32 | '%{%{Acct-Output-Octets}:-0}', \
+										'%{Called-Station-Id}', \
+										'%{Calling-Station-Id}', \
+										'', \
+										'%{Service-Type}', \
+										'%{Framed-Protocol}', \
+										'%{Framed-IP-Address}', \
+										'%{Framed-IPv6-Address}', \
+										'%{Framed-IPv6-Prefix}', \
+										'%{Framed-Interface-Id}', \
+										'%{Delegated-IPv6-Prefix}' \
+										${....class.packet_xlat})"
+
+						#
+						#  When using "sql_session_start", you should comment out
+						#  the previous query, and enable this one.
+						#
+						#  Just change the previous query to "-query",
+						#  and this one to "query".  The previous one
+						#  will be ignored, and this one will be
+						#  enabled.
+						#
+						-query = "\
+								UPDATE ${....acct_table1} \
+								SET \
+										AcctSessionId = '%{Acct-Session-Id}', \
+										AcctUniqueId = '%{Acct-Unique-Session-Id}', \
+										AcctAuthentic = '%{Acct-Authentic}', \
+										ConnectInfo_start = '%{Connect-Info}', \
+										ServiceType = '%{Service-Type}', \
+										FramedProtocol = '%{Framed-Protocol}', \
+										framedipaddress = '%{Framed-IP-Address}', \
+										framedipv6address = '%{Framed-IPv6-Address}', \
+										framedipv6prefix = '%{Framed-IPv6-Prefix}', \
+										framedinterfaceid = '%{Framed-Interface-Id}', \
+										delegatedipv6prefix = '%{Delegated-IPv6-Prefix}', \
+										AcctUpdateTime = ${....event_timestamp}, \
+										AcctSessionTime = %{%{Acct-Session-Time}:-NULL}, \
+										AcctInputOctets = '%{%{Acct-Input-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Input-Octets}:-0}', \
+										AcctOutputOctets = '%{%{Acct-Output-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Output-Octets}:-0}' \
+								WHERE UserName = '%{SQL-User-Name}' \
+										AND NASIPAddress = '%{%{NAS-IPv6-Address}:-%{NAS-IP-Address}}' \
+										AND NASPortId = '%{%{NAS-Port-ID}:-%{NAS-Port}}' \
+										AND NASPortType = '%{NAS-Port-Type}' \
+										AND AcctStopTime IS NULL"
+
+				}
+
+				stop {
+						#
+						#  Session has terminated, update the stop time and statistics.
+						#
+						query = "\
+								UPDATE ${....acct_table2} SET \
+										acctstoptime    = ${....event_timestamp}, \
+										acctsessiontime = %{%{Acct-Session-Time}:-NULL}, \
+										acctinputoctets = '%{%{Acct-Input-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Input-Octets}:-0}', \
+										acctoutputoctets = '%{%{Acct-Output-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Output-Octets}:-0}', \
+										acctterminatecause = '%{Acct-Terminate-Cause}', \
+										connectinfo_stop = '%{Connect-Info}' \
+								WHERE AcctUniqueId = '%{Acct-Unique-Session-Id}'"
+
+						#
+						#  The update condition matched no existing sessions. Use
+						#  the values provided in the update to create a new session.
+						#
+						query = "\
+								INSERT INTO ${....acct_table2} \
+										(${...column_list}) \
+								VALUES \
+										('%{Acct-Session-Id}', \
+										'%{Acct-Unique-Session-Id}', \
+										'%{SQL-User-Name}', \
+										'%{Realm}', \
+										'%{NAS-IP-Address}', \
+										'%{%{NAS-Port-ID}:-%{NAS-Port}}', \
+										'%{NAS-Port-Type}', \
+										FROM_UNIXTIME(${....event_timestamp_epoch} - %{%{Acct-Session-Time}:-0}), \
+										${....event_timestamp}, \
+										${....event_timestamp}, \
+										%{%{Acct-Session-Time}:-NULL}, \
+										'%{Acct-Authentic}', \
+										'', \
+										'%{Connect-Info}', \
+										'%{%{Acct-Input-Gigawords}:-0}' << 32 | '%{%{Acct-Input-Octets}:-0}', \
+										'%{%{Acct-Output-Gigawords}:-0}' << 32 | '%{%{Acct-Output-Octets}:-0}', \
+										'%{Called-Station-Id}', \
+										'%{Calling-Station-Id}', \
+										'%{Acct-Terminate-Cause}', \
+										'%{Service-Type}', \
+										'%{Framed-Protocol}', \
+										'%{Framed-IP-Address}', \
+										'%{Framed-IPv6-Address}', \
+										'%{Framed-IPv6-Prefix}', \
+										'%{Framed-Interface-Id}', \
+										'%{Delegated-IPv6-Prefix}' \
+										${....class.packet_xlat})"
+
+						#
+						#  When using "sql_session_start", you should comment out
+						#  the previous query, and enable this one.
+						#
+						#  Just change the previous query to "-query",
+						#  and this one to "query".  The previous one
+						#  will be ignored, and this one will be
+						#  enabled.
+						#
+						-query = "\
+								UPDATE ${....acct_table1} \
+								SET \
+										AcctSessionId = '%{Acct-Session-Id}', \
+										AcctUniqueId = '%{Acct-Unique-Session-Id}', \
+										AcctAuthentic = '%{Acct-Authentic}', \
+										ConnectInfo_start = '%{Connect-Info}', \
+										ServiceType = '%{Service-Type}', \
+										FramedProtocol = '%{Framed-Protocol}', \
+										framedipaddress = '%{Framed-IP-Address}', \
+										framedipv6address = '%{Framed-IPv6-Address}', \
+										framedipv6prefix = '%{Framed-IPv6-Prefix}', \
+										framedinterfaceid = '%{Framed-Interface-Id}', \
+										delegatedipv6prefix = '%{Delegated-IPv6-Prefix}', \
+										AcctStopTime = ${....event_timestamp}, \
+										AcctUpdateTime = ${....event_timestamp}, \
+										AcctSessionTime = %{Acct-Session-Time}, \
+										AcctInputOctets = '%{%{Acct-Input-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Input-Octets}:-0}', \
+										AcctOutputOctets = '%{%{Acct-Output-Gigawords}:-0}' \
+												<< 32 | '%{%{Acct-Output-Octets}:-0}', \
+										AcctTerminateCause = '%{Acct-Terminate-Cause}', \
+										ConnectInfo_stop = '%{Connect-Info}' \
+								WHERE UserName = '%{SQL-User-Name}' \
+								AND NASIPAddress = '%{%{NAS-IPv6-Address}:-%{NAS-IP-Address}}' \
+								AND NASPortId = '%{%{NAS-Port-ID}:-%{NAS-Port}}' \
+								AND NASPortType = '%{NAS-Port-Type}' \
+								AND AcctStopTime IS NULL"
+
+				}
+
+				#
+				#  No Acct-Status-Type == ignore the packet
+				#
+				accounting {
+						query = "SELECT true"
+				}
+		}
+	}
+	#######################################################################
+	# Authentication Logging Queries
+	#######################################################################
+	# postauth_query        - Insert some info after authentication
+	#######################################################################
+
+	post-auth {
+			# Write SQL queries to a logfile. This is potentially useful for bulk inserts
+			# when used with the rlm_sql_null driver.
+	#       logfile = ${logdir}/post-auth.sql
+
+			query = "\
+					INSERT INTO ${..postauth_table} \
+							(username, pass, reply, authdate ${..class.column_name}) \
+					VALUES ( \
+							'%{SQL-User-Name}', \
+							'%{%{User-Password}:-%{Chap-Password}}', \
+							'%{reply:Packet-Type}', \
+							'%S.%M' \
+							${..class.reply_xlat})"
+	}
+}

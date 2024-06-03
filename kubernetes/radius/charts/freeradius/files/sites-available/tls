@@ -1,0 +1,71 @@
+listen {
+
+		ipaddr = $ENV{FREERADIUS_SITES_TLS_LISTEN}
+		port = $ENV{FREERADIUS_SITES_TLS_PORT}
+		type = auth+acct
+		proto = tcp
+		virtual_server = default
+		clients = radsec
+		limit {
+			idle_timeout = 30
+		}
+		tls {
+				private_key_password = $ENV{FREERADIUS_SITES_TLS_PRIVKEY_PASSWORD}
+				private_key_file = $ENV{FREERADIUS_SITES_TLS_PRIVKEY_FILE}
+				certificate_file = $ENV{FREERADIUS_SITES_TLS_CERTIFICATE_FILE}
+				ca_file = $ENV{FREERADIUS_SITES_TLS_CA_FILE}
+				dh_file = ${certdir}/dh
+				fragment_size = 8192
+				ca_path = ${cadir}
+				ca_path_reload_interval = 3600
+				cipher_list = "DEFAULT"
+				cipher_server_preference = no
+				tls_min_version = "1.2"
+				tls_max_version = "1.3"
+				cache {
+					enable = no
+					lifetime = 24 # hours
+				}
+				require_client_cert = yes
+				verify {
+				}
+		}
+}
+
+clients radsec {
+		client 127.0.0.1 {
+				ipaddr = 127.0.0.1
+				proto = tls
+				secret = radsec
+		}
+}
+home_server tls {
+		ipaddr = 127.0.0.1
+		port = $ENV{FREERADIUS_SITES_TLS_PORT}
+		type = auth
+		secret = radsec
+		proto = tcp
+		status_check = none
+
+		tls {
+				private_key_password = whatever
+				private_key_file = /startechnica/freeradius/certs/tls.key
+				certificate_file = /startechnica/freeradius/certs/tls.crt
+				ca_file = /startechnica/freeradius/certs/ca.crt
+				dh_file = ${certdir}/dh
+				random_file = /dev/urandom
+				fragment_size = 8192
+				ca_path = ${cadir}
+				cipher_list = "DEFAULT"
+		}
+
+}
+
+home_server_pool tls {
+	type = fail-over
+	home_server = tls
+}
+
+realm tls {
+	auth_pool = tls
+}

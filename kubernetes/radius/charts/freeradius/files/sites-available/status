@@ -1,0 +1,18 @@
+server status {
+	listen {
+		type = status
+
+		ipaddr = $ENV{FREERADIUS_SITES_STATUS_LISTEN}
+		port = $ENV{FREERADIUS_SITES_STATUS_PORT}
+	}
+	client admin {
+		ipaddr = 127.0.0.1
+		secret = $ENV{FREERADIUS_SITES_STATUS_SECRET}
+	}
+	authorize {
+		ok
+		Autz-Type Status-Server {
+			ok
+		}
+	}
+}

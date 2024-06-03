@@ -1,0 +1,27 @@
+linelog log_authentication {
+        filename = ${logdir}/linelog-auth
+        escape_filenames = no
+        permissions = 0755
+        format = "This is a authen log message for %{User-Name}"
+        reference = "messages.%{%{reply:Packet-Type}:-default}"
+        messages {
+                default = "Unknown packet type %{Packet-Type} From NAS: %{NAS-IP-Address} at %{Event-Timestamp}"
+                Access-Accept = "Accepted: User %{User-Name} From NAS: %{NAS-IP-Address} at %{Event-Timestamp}"
+                Access-Reject = "Rejected: User %{User-Name} From NAS: %{NAS-IP-Address} at %{Event-Timestamp}"
+                Access-Challenge = "Sent challenge: %{User-Name} From NAS: %{NAS-IP-Address} at %{Event-Timestamp}"
+        }
+}
+linelog log_accounting {
+        format = "This is a accounting log message for %{User-Name}"
+        filename = ${logdir}/linelog-acct
+        permissions = 0755
+        reference = "Accounting-Request.%{%{Acct-Status-Type}:-unknown}"
+        Accounting-Request {
+                Start = "Connect: [%{User-Name}] From NAS: %{NAS-IP-Address} (did %{Called-Station-Id} cli %{Calling-Station-Id} port %{NAS-Port} ip %{Framed-IP-Address}) at %{Event-Timestamp}"
+                Stop = "Disconnect: [%{User-Name}] From NAS: %{NAS-IP-Address} (did %{Called-Station-Id} cli %{Calling-Station-Id} port %{NAS-Port} ip %{Framed-IP-Address}) with lifetime %{Acct-Session-Time} seconds at %{Event-Timestamp}"
+                Alive = ""
+                Accounting-On = "NAS %{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}} (%{%{NAS-IP-Address}:-%{NAS-IPv6-Address}}) just came online at %{Event-Timestamp}"
+                Accounting-Off = "NAS %{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}} (%{%{NAS-IP-Address}:-%{NAS-IPv6-Address}}) just went offline at %{Event-Timestamp}"
+                unknown = "NAS %{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}} (%{%{NAS-IP-Address}:-%{NAS-IPv6-Address}}) sent unknown Acct-Status-Type %{Acct-Status-Type} at %{Event-Timestamp}"
+        }
+}

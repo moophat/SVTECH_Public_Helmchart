@@ -1,0 +1,18 @@
+apiVersion: v2
+name: radius
+description: This's Radius Stack from DevOps team
+maintainers:
+  - name: Freezing
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+dependencies:
+- condition: daloradius.enabled
+  name: daloradius
+  repository: 10.98.0.121:5000/daloradius:1.2-dev
+  version: 1.x.x
+- condition: freeradius.enabled
+  name: freeradius
+  repository: 10.98.0.121:5000/freeradius/freeradius-server:3.0.26-netdebug
+  version: 0.1.x

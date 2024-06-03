@@ -1,0 +1,35 @@
+client dynamic {
+        ipaddr = 0.0.0.0/0
+        dynamic_clients = dynamic_clients
+        lifetime = 5
+}
+server dynamic_clients {
+    authorize {
+        if ("%{sql: SELECT nasname FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}") {
+            update control {
+                &FreeRADIUS-Client-IP-Address = "%{Packet-Src-IP-Address}"
+                &FreeRADIUS-Client-Secret = "%{sql: SELECT secret FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}"
+            }
+            if ("%{sql: SELECT shortname FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}") {
+                update control {
+                    &FreeRADIUS-Client-Shortname ="%{sql: SELECT shortname FROM nas WHERE nasname = '%{Packet-Src-IP-Address}'}"
+                }
+            }
+            else {
+                update control {
+                    &FreeRADIUS-Client-Shortname ="Noname_NAS"
+                }
+            }
+            ok
+        }
+        else {
+			update reply {
+				Reply-Message = "This NAS hasn't defined on Radius server yet. Please check again"
+			}
+			update control {
+				Auth-Type := "Reject"
+			}
+            reject
+		}
+    }
+}

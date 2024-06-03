@@ -1,0 +1,16 @@
+listen {
+		type = coa
+		ipaddr = $ENV{FREERADIUS_SITES_COA_LISTEN}
+		port = $ENV{FREERADIUS_SITES_COA_PORT}
+		virtual_server = coa
+}
+
+server coa {
+		recv-coa {
+				suffix
+				ok
+		}
+		send-coa {
+				ok
+		}
+}

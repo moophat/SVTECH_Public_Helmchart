@@ -148,6 +148,8 @@ spec:
               value: {{ .Values.rundeckConfig.IMPORT_NMS_JOB | quote }}
             - name: IMPORT_AUTOMATION_JOB
               value: {{ .Values.rundeckConfig.IMPORT_AUTOMATION_JOB | quote }}
+            - name: IMPORT_AUDIT_JOB
+              value: {{ .Values.rundeckConfig.IMPORT_AUDIT_JOB | quote }}
             - name: OVERRIDE_IMPORT_JOB
               value: {{ .Values.rundeckConfig.OVERRIDE_IMPORT_JOB | quote }}
             - name: RUNDECK_OPTION_PROVIDER_URL

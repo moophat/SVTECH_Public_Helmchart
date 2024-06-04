@@ -325,6 +325,7 @@ rundeckConfig:
   # Options variable
   IMPORT_NMS_JOB: "true"
   IMPORT_AUTOMATION_JOB: "true"
+  IMPORT_AUDIT_JOB: "true"
   OVERRIDE_IMPORT_JOB: "false"
   RUNDECK_OPTION_PROVIDER_URL: http://rundeck-option-provider:1111
   HOST_IP: "10.98.0.144"

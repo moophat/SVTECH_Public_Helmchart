@@ -1,0 +1,32 @@
+# {{- if .Values.workers.persistence.enabled }}
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: rest-converter-logs
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: "rest-converter-logs"
+#   labels:
+#     tier: airflow
+#     component: logs-pvc
+#     release: {{ .Release.Name }}
+    
+
+# spec:
+#   storageClassName: rest-converter-logs
+#   capacity:
+#     storage: {{ .Values.logs.persistence.size | quote }}
+#   accessModes:
+#     - ReadWriteMany
+#   persistentVolumeReclaimPolicy: Retain
+#   hostPath:
+#     path: /data/rest_converter_logs
+
+
+# {{- end }}

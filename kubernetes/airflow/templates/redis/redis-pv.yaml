@@ -1,0 +1,32 @@
+{{- if .Values.redis.persistence.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rest-converter-redis
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "rest-converter-redis"
+  labels:
+    tier: airflow
+    component: redis
+    release: {{ .Release.Name }}
+
+spec:
+  storageClassName: rest-converter-redis
+  capacity:
+    storage: {{ .Values.redis.persistence.size | quote }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/rest_converter_redis
+
+
+{{- end }}

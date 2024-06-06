@@ -1,0 +1,30 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rest-converter-postgresql
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "rest-converter-postgresql"
+  labels:
+    app.kubernetes.io/instance: rest-converter
+    app.kubernetes.io/name: postgresql
+    role: primary
+    # release: {{ .Release.Name }}
+spec:
+  storageClassName: rest-converter-postgresql
+  capacity:
+    storage: {{ .Values.persistence.size | quote }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/rest_converter_postgresql
+
+
+{{- end }}

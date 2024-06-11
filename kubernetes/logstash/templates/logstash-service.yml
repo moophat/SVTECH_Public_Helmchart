@@ -20,5 +20,7 @@ spec:
       port: 5555
       targetPort: 5555
       nodePort: 30555
+  {{- if and (eq .Values.service.type "LoadBalancer") (not (empty .Values.service.loadBalancerIP)) }}
   externalTrafficPolicy: Local
   loadBalancerIP: {{ .Values.global.logstash.loadBalancerIP }}
+  {{- end }}

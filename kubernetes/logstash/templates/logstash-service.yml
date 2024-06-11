@@ -14,12 +14,16 @@ spec:
       protocol: UDP
       port: 5515
       targetPort: 5515
+  {{- if and (eq .Values.service.type "LoadBalancer") (not (empty .Values.service.loadBalancerIP)) }}
       nodePort: 30515
+  {{- end }}
     - name: upload-offline-log
       protocol: TCP
       port: 5555
       targetPort: 5555
+  {{- if and (eq .Values.service.type "LoadBalancer") (not (empty .Values.service.loadBalancerIP)) }}
       nodePort: 30555
+  {{- end }}
   {{- if and (eq .Values.service.type "LoadBalancer") (not (empty .Values.service.loadBalancerIP)) }}
   externalTrafficPolicy: Local
   loadBalancerIP: {{ .Values.global.logstash.loadBalancerIP }}

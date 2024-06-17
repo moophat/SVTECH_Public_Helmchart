@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "init-db"
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: wait-for-mariadb
+        image: busybox:1.33
+        imagePullPolicy: {{ .Values.init.image.pullPolicy | quote }}
+        command:
+        - /bin/sh
+        - -c
+        - |              
+          {{- if .Values.externalDatabase.host }}
+          until nc -zvw5 {{ .Values.externalDatabase.host }} 3306; do echo "Waiting for MariaDB..."; sleep 2; done
+          {{- else }}
+          until nc -zvw5 mariadb 3306; do echo "Waiting for MariaDB..."; sleep 2; done
+          {{- end }}
+      containers:
+      - name: init-db
+        image: {{ .Values.init.image.repository }}:{{ .Values.init.image.tag }}
+        command:
+          - bash
+          - -ec
+          - |
+              for file in /docker-entrypoint-initdb.d/*.sql; do
+                mysql -h $MYSQL_HOST -u $MYSQL_USER -p$MYSQL_PASSWORD --database=$MYSQL_DATABASE < "$file"
+              done
+
+        env:
+            - name: MYSQL_HOST
+              value: {{ .Values.externalDatabase.host | quote}}
+            - name: MYSQL_PORT
+              value: {{ .Values.externalDatabase.port | quote}}
+            - name: MYSQL_USER
+              value: {{ .Values.externalDatabase.user | quote }}
+            - name: MYSQL_DATABASE
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: MYSQL_PASSWORD
+              value: {{ .Values.externalDatabase.password | quote }}
+        volumeMounts:
+          - name: custom-init-scripts
+            mountPath: /docker-entrypoint-initdb.d
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}  
+
+      volumes:
+        - name: custom-init-scripts
+          configMap:
+            name: {{ .Release.Name }}-raddb-init-schema

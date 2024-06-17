@@ -1,0 +1,12 @@
+annotations:
+  category: AccessManagement
+apiVersion: v2
+appVersion: 3.0.26
+dependencies:
+- name: common
+  repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/ 
+  version: 1.x.x
+description: FreeRADIUS is a modular, high performance free RADIUS suite developed and distributed under the GNU General Public License, version 2, and is free for download and use.
+name: freeradius
+type: application
+version: 0.1.5

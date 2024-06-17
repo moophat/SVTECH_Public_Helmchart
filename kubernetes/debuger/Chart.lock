@@ -1,6 +1,6 @@
 dependencies:
 - name: common
-  repository: file://../common
+  repository: https://moophat.github.io/SVTECH_Public_Helmchart/artifacthub/
   version: 1.4.3
-digest: sha256:66a4cf3e2816051c4ca4685fadb7e84ec535753ae7e9c1695e2b4fc13e929e66
-generated: "2024-05-06T17:16:05.430895246+07:00"
+digest: sha256:b9257e3e235cfc2fa7a3f5a3d9cf8d1ac2aa2e2ce7c7c1b6cb93fd472255d9cf
+generated: "2024-06-17T16:52:52.657680386+07:00"

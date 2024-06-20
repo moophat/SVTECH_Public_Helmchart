@@ -7,7 +7,7 @@ engine: gotpl
 
 dependencies:
   - name: common
-    repository: file://../common
+    repository: https://svtechnmaa.github.io/charts/artifacthub/
     tags:
       - bitnami-common
     version: 1.x.x
